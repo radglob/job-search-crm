@@ -9,5 +9,6 @@ urlpatterns = [
     path('create_account', views.create_account, name='create_account'),
     path('create_profile', views.get_profile_information, name='get_profile_information'),
     path('_create_profile', views.create_profile, name='create_profile'),
-    path('login', views.login, name='login')
+    path('login', views.login, name='login'),
+    path('logout', views.logout, name='logout')
 ]

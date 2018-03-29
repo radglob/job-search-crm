@@ -2,6 +2,7 @@
 
 {% if customer %}
 <span>Welcome, {{ customer.user.first_name }}!</span>
+<a href="{% url 'applications:logout' %}">Logout</a>
 {% else %}
 <form action="login" method="POST">
   {% csrf_token %}

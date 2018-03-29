@@ -4,7 +4,7 @@
 <span>Welcome, {{ customer.user.first_name }}!</span>
 <a href="{% url 'applications:logout' %}">Logout</a>
 {% else %}
-<form action="login" method="POST">
+<form action="{% url 'applications:login' %}" method="POST">
   {% csrf_token %}
   <input type="text" name="username" placeholder="Username" />
   <input type="password" name="password" placeholder="Password" />

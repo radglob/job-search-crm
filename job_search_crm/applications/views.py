@@ -1,4 +1,8 @@
-from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth import (
+    authenticate,
+    login as auth_login,
+    logout as auth_logout
+)
 from django.contrib.auth.models import AnonymousUser, User
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -52,8 +56,14 @@ def create_profile(request):
     return HttpResponseRedirect(reverse('applications:home'))
 
 def login(request):
-    __, username, password = request.POST.values()
-    return HttpResponse('{}, {}'.format(username, password))
+    username, password = request.POST['username'], request.POST['password']
+    user = authenticate(username=username, password=password)
+    if user:
+        auth_login(request, user)
+    else:
+        # Do a error.
+        pass
+    return HttpResponseRedirect(reverse('applications:home'))
 
 
 def logout(request):

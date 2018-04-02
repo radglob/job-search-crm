@@ -11,3 +11,5 @@ django = "*"
 
 
 [dev-packages]
+
+black = "*"

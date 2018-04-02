@@ -1,9 +1,8 @@
 from django.contrib.auth import (
-    authenticate,
-    login as auth_login,
-    logout as auth_logout
+    authenticate, login as auth_login, logout as auth_logout
 )
 from django.contrib.auth.models import AnonymousUser, User
+from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -19,53 +18,70 @@ def index(request):
             customer = None
     else:
         customer = None
-    return render(request, 'applications/index.html', {'customer': customer})
+    return render(request, "applications/index.html", {"customer": customer})
+
 
 def signup(request):
-    return render(request, 'applications/signup.html')
+    return render(request, "applications/signup.html")
+
 
 def create_account(request):
     username, email, password, confirm_password = [
-        request.POST.get(k) for k in 
-        ('username', 'email', 'password', 'confirm_password')
+        request.POST.get(k)
+        for k in ("username", "email", "password", "confirm_password")
     ]
     if password == confirm_password:
-        u = User.objects.create_user(username, email=email, password=password)
-        u.save()
-        auth_login(request, u)
-        return HttpResponseRedirect(
-                reverse('applications:get_profile_information')) 
+        try:
+            u = User.objects.create_user(username, email=email, password=password)
+            u.save()
+            auth_login(request, u)
+            return HttpResponseRedirect(reverse("applications:get_profile_information"))
+
+        except IntegrityError as e:
+            return render(
+                request, "applications/signup.html", {"error_message": e.args[0]}
+            )
+
 
 def get_profile_information(request):
-    return render(request, 'applications/create_profile.html')
-        
+    return render(request, "applications/create_profile.html")
+
 
 def create_profile(request):
     first_name, last_name, bio, location, birth_date = [
-        request.POST.get(k) for k in 
-        ('first_name', 'last_name', 'bio', 'location', 'birth_date')]
+        request.POST.get(k)
+        for k in ("first_name", "last_name", "bio", "location", "birth_date")
+    ]
     request.user.first_name = first_name
     request.user.last_name = last_name
     request.user.save()
     customer_profile = CustomerProfile.objects.create(
-        user=request.user,
-        bio=bio,
-        location=location,
-        birth_date=birth_date)
+        user=request.user, bio=bio, location=location, birth_date=birth_date
+    )
     customer_profile.save()
-    return HttpResponseRedirect(reverse('applications:home'))
+    return HttpResponseRedirect(reverse("applications:home"))
+
 
 def login(request):
-    username, password = request.POST['username'], request.POST['password']
+    username, password = request.POST["username"], request.POST["password"]
     user = authenticate(username=username, password=password)
     if user:
         auth_login(request, user)
     else:
-        # Do a error.
-        pass
-    return HttpResponseRedirect(reverse('applications:home'))
+        return render(
+            request,
+            "applications/index.html",
+            {"error_message": "Username or password did not match."},
+            status=401
+        )
+    if not user.is_superuser:
+        try:
+            profile = CustomerProfile.objects.get(user=user)
+        except CustomerProfile.DoesNotExist:
+            return HttpResponseRedirect(reverse('applications:get_profile_information'))
+    return render(request, 'applications/index.html')
 
 
 def logout(request):
     auth_logout(request)
-    return HttpResponseRedirect(reverse('applications:home'))
+    return HttpResponseRedirect(reverse("applications:home"))

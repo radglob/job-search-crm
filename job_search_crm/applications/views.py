@@ -1,7 +1,7 @@
 from django.contrib.auth import (
     authenticate, login as auth_login, logout as auth_logout
 )
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -11,13 +11,12 @@ from .models import CustomerProfile
 
 
 def index(request):
-    if not isinstance(request.user, AnonymousUser):
+    customer = None
+    if not request.user.is_anonymous:
         try:
             customer = CustomerProfile.objects.get(user=request.user)
         except CustomerProfile.DoesNotExist:
-            customer = None
-    else:
-        customer = None
+            pass
     return render(request, "applications/index.html", {"customer": customer})
 
 
@@ -39,8 +38,19 @@ def create_account(request):
 
         except IntegrityError as e:
             return render(
-                request, "applications/signup.html", {"error_message": e.args[0]}
+                request,
+                "applications/signup.html",
+                {"error_message": e.args[0]},
+                status=409,
             )
+
+    else:
+        return render(
+            request,
+            "applications/signup.html",
+            {"error_message": "Passwords do not match."},
+            status=400,
+        )
 
 
 def get_profile_information(request):

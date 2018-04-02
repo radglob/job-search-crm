@@ -13,3 +13,4 @@ django = "*"
 [dev-packages]
 
 black = "*"
+coverage = "*"

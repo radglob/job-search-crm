@@ -72,14 +72,16 @@ def login(request):
             request,
             "applications/index.html",
             {"error_message": "Username or password did not match."},
-            status=401
+            status=401,
         )
+
     if not user.is_superuser:
         try:
             profile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
-            return HttpResponseRedirect(reverse('applications:get_profile_information'))
-    return render(request, 'applications/index.html')
+            return HttpResponseRedirect(reverse("applications:get_profile_information"))
+
+    return render(request, "applications/index.html")
 
 
 def logout(request):

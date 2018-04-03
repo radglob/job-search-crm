@@ -5,7 +5,7 @@
 {% if applications_list %}
   <ul>
     {% for application in applications_list %}
-    <li>{{ application }}</li>
+    <li><a href="{% url 'applications:application' application.id %}">{{ application }}</a></li>
     {% endfor %}
   </ul>
 {% else %}

@@ -1,0 +1,25 @@
+{% extends 'applications/base.html' %}
+
+{% block body %}
+<div>
+  <h2>Application to {{ application.position.company.company_name }}</h2>
+  <p>{{ application.position.position_name }}</p>
+  <p>Started on {{ application.start_date }}</p>
+  <p>Status: {{ application.status }}</p>
+  {% if application.end_date %}
+  <strong>Application terminated on {{ application.end_date }}</strong>
+  {% endif %}
+  <div>
+    <h2>Timeline</h2>
+    {% if application.events %}
+    <ul>
+      {% for event in application.events %}
+      <li>{{ event }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No events so far.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
@@ -146,3 +146,7 @@ def create_new_application(request):
     else:
         messages.success = "New application created!"
         return HttpResponseRedirect(reverse("applications:applications"))
+
+def application_by_id(request, application_id):
+    application = get_object_or_404(Application, pk=application_id)
+    return render(request, 'applications/application_details.html', {'application': application})

@@ -65,5 +65,7 @@ class Event(models.Model):
     description = models.TextField(max_length=500, null=False)
     date = models.DateField(default=timezone.now)
 
+    ordered = ['-date']
+
     def __str__(self):
         return "{} for {}".format(self.description, self.application)

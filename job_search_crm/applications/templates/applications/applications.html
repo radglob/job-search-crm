@@ -1,0 +1,14 @@
+{% extends 'applications/base.html' %}
+
+{% block body %}
+<h1>Applications</h1>
+{% if applications_list %}
+  <ul>
+    {% for application in applications_list %}
+    <li>{{ application }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <span>You have no open applications right now.</span>
+{% endif %}
+{% endblock %}

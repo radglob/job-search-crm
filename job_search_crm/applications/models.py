@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 
 class CustomerProfile(models.Model):
@@ -30,3 +31,31 @@ class Position(models.Model):
 
     def __str__(self):
         return " at ".join((self.position_name, self.company.company_name))
+
+
+APPLICATION_STATUS_CHOICES = (
+    ("0", "Open"),
+    ("1", "Declined by employer"),
+    ("2", "Offer extended"),
+    ("3", "Position accepted"),
+)
+
+
+class Application(models.Model):
+    applicant = models.ForeignKey(CustomerProfile, on_delete=models.CASCADE)
+    position = models.ForeignKey(Position, on_delete=models.CASCADE)
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(null=True)
+    status = models.CharField(max_length=50, choices=APPLICATION_STATUS_CHOICES)
+
+    def __str__(self):
+        return "Application to {}: {}".format(self.position, self.status)
+
+
+class Event(models.Model):
+    application = models.ForeignKey(Application, on_delete=models.CASCADE)
+    description = models.TextField(max_length=500, null=False)
+    date = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return "{} for {}".format(self.description, self.application)

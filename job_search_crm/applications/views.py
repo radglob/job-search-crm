@@ -6,8 +6,9 @@ from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.generic import ListView
 
-from .models import CustomerProfile
+from .models import CustomerProfile, Application
 
 
 def index(request):
@@ -97,3 +98,12 @@ def login(request):
 def logout(request):
     auth_logout(request)
     return HttpResponseRedirect(reverse("applications:home"))
+
+
+class ApplicationsView(ListView):
+    template_name = "applications/applications.html"
+    context_object_name = "applications_list"
+
+    def get_queryset(self):
+        customer = CustomerProfile.objects.get(user=self.request.user)
+        return Application.objects.filter(applicant=customer)

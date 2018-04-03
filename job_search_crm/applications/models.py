@@ -46,7 +46,7 @@ class Application(models.Model):
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True)
-    status = models.CharField(max_length=50, choices=APPLICATION_STATUS_CHOICES)
+    status = models.CharField(max_length=50, choices=APPLICATION_STATUS_CHOICES, default='Open')
 
     def __str__(self):
         return "Application to {}: {}".format(self.position, self.status)

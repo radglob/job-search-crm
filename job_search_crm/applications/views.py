@@ -1,14 +1,22 @@
 from django.contrib.auth import (
     authenticate, login as auth_login, logout as auth_logout
 )
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import ListView
+from django.views.generic.edit import FormView
 
-from .models import CustomerProfile, Application
+from .models import (
+    Application,
+    Company,
+    CustomerProfile,
+    Position
+)
+from .forms import NewApplicationForm
 
 
 def index(request):
@@ -107,3 +115,41 @@ class ApplicationsView(ListView):
     def get_queryset(self):
         customer = CustomerProfile.objects.get(user=self.request.user)
         return Application.objects.filter(applicant=customer)
+
+
+class NewApplicationView(FormView):
+    template_name = 'applications/new_application.html'
+    form_class = NewApplicationForm
+    success_url = '/applications'
+
+
+def create_new_application(request):
+    company, __ = Company.objects.get_or_create(
+        company_name=request.POST['company_name'],
+        defaults={
+            'location': request.POST['company_location'],
+            'sub_industry': request.POST['company_sub_industry']
+        }
+    )
+    position, __ = Position.objects.get_or_create(
+        company=company,
+        position_name=request.POST['position_name'],
+        defaults={
+            'is_remote': request.POST.get('is_remote', False),
+            'min_salary': request.POST['min_salary'],
+            'max_salary': request.POST['max_salary'],
+            'tech_stack': request.POST['tech_stack']
+        }
+    )
+    application, created = Application.objects.get_or_create(
+        applicant=request.user.customerprofile,
+        position=position
+    )
+    if not created:
+        messages.error = 'This application already exists.'
+        return HttpResponseRedirect(reverse('applications:applications'))
+    else:
+        messages.success = 'New application created!'
+        return HttpResponseRedirect(reverse('applications:applications'))
+
+

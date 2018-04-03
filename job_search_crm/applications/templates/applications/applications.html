@@ -11,4 +11,5 @@
 {% else %}
   <span>You have no open applications right now.</span>
 {% endif %}
+<a href="{% url 'applications:new_application' %}">Create new application</a>
 {% endblock %}

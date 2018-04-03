@@ -12,7 +12,7 @@ class CustomerProfile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return self.user.last_name + ', ' + self.user.first_name
+        return self.user.last_name + ", " + self.user.first_name
 
 
 class Company(models.Model):
@@ -21,7 +21,7 @@ class Company(models.Model):
     sub_industry = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name_plural = 'Companies'
+        verbose_name_plural = "Companies"
 
     def __str__(self):
         return self.company_name
@@ -52,7 +52,9 @@ class Application(models.Model):
     position = models.ForeignKey(Position, on_delete=models.CASCADE)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True)
-    status = models.CharField(max_length=50, choices=APPLICATION_STATUS_CHOICES, default='Open')
+    status = models.CharField(
+        max_length=50, choices=APPLICATION_STATUS_CHOICES, default="Open"
+    )
 
     def __str__(self):
         return "Application to {}: {}".format(self.position, self.status)

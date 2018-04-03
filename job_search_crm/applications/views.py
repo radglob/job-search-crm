@@ -10,12 +10,7 @@ from django.urls import reverse
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
-from .models import (
-    Application,
-    Company,
-    CustomerProfile,
-    Position
-)
+from .models import (Application, Company, CustomerProfile, Position)
 from .forms import NewApplicationForm
 
 
@@ -118,38 +113,36 @@ class ApplicationsView(ListView):
 
 
 class NewApplicationView(FormView):
-    template_name = 'applications/new_application.html'
+    template_name = "applications/new_application.html"
     form_class = NewApplicationForm
-    success_url = '/applications'
+    success_url = "/applications"
 
 
 def create_new_application(request):
     company, __ = Company.objects.get_or_create(
-        company_name=request.POST['company_name'],
+        company_name=request.POST["company_name"],
         defaults={
-            'location': request.POST['company_location'],
-            'sub_industry': request.POST['company_sub_industry']
-        }
+            "location": request.POST["company_location"],
+            "sub_industry": request.POST["company_sub_industry"],
+        },
     )
     position, __ = Position.objects.get_or_create(
         company=company,
-        position_name=request.POST['position_name'],
+        position_name=request.POST["position_name"],
         defaults={
-            'is_remote': request.POST.get('is_remote', False),
-            'min_salary': request.POST['min_salary'],
-            'max_salary': request.POST['max_salary'],
-            'tech_stack': request.POST['tech_stack']
-        }
+            "is_remote": request.POST.get("is_remote", False),
+            "min_salary": request.POST["min_salary"],
+            "max_salary": request.POST["max_salary"],
+            "tech_stack": request.POST["tech_stack"],
+        },
     )
     application, created = Application.objects.get_or_create(
-        applicant=request.user.customerprofile,
-        position=position
+        applicant=request.user.customerprofile, position=position
     )
     if not created:
-        messages.error = 'This application already exists.'
-        return HttpResponseRedirect(reverse('applications:applications'))
+        messages.error = "This application already exists."
+        return HttpResponseRedirect(reverse("applications:applications"))
+
     else:
-        messages.success = 'New application created!'
-        return HttpResponseRedirect(reverse('applications:applications'))
-
-
+        messages.success = "New application created!"
+        return HttpResponseRedirect(reverse("applications:applications"))

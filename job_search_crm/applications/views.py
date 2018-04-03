@@ -10,8 +10,8 @@ from django.urls import reverse
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
-from .models import (Application, Company, CustomerProfile, Position)
-from .forms import NewApplicationForm
+from .models import (Application, Company, CustomerProfile, Event, Position)
+from .forms import NewApplicationForm, NewEventForm
 
 
 def index(request):
@@ -150,3 +150,19 @@ def create_new_application(request):
 def application_by_id(request, application_id):
     application = get_object_or_404(Application, pk=application_id)
     return render(request, 'applications/application_details.html', {'application': application})
+
+
+class NewEventView(FormView):
+    template_name = "applications/new_event.html"
+    form_class = NewEventForm
+    success_url = "/applications"
+
+
+def create_new_event(request):
+    event = Event.objects.create(
+        application=request.POST['application'],
+        description=request.POST['description'],
+        date=request.POST['date']
+    )
+    messages.success = 'New event added.'
+    return HttpResponseRedirect(reverse('applications:applications'))

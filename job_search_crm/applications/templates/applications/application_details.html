@@ -20,6 +20,7 @@
     {% else %}
     <p>No events so far.</p>
     {% endif %}
+    <a href="{% url 'applications:new_event' %}">Create new event</a>
   </div>
 </div>
 {% endblock %}

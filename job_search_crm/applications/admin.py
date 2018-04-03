@@ -1,5 +1,25 @@
 from django.contrib import admin
-from .models import CustomerProfile
+from .models import (
+    Application,
+    Company,
+    CustomerProfile,
+    Position
+)
 
-# Register your models here.
-admin.site.register(CustomerProfile)
+
+class ApplicationAdmin(admin.ModelAdmin):
+    pass
+
+class CompanyAdmin(admin.ModelAdmin):
+    pass
+
+class CustomerProfileAdmin(admin.ModelAdmin):
+    pass
+
+class PositionAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Application, ApplicationAdmin)
+admin.site.register(Company, CompanyAdmin)
+admin.site.register(CustomerProfile, CustomerProfileAdmin)
+admin.site.register(Position, PositionAdmin)

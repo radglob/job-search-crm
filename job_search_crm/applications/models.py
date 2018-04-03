@@ -11,11 +11,17 @@ class CustomerProfile(models.Model):
     location = models.CharField(max_length=50, blank=True)
     birth_date = models.DateField(null=True, blank=True)
 
+    def __str__(self):
+        return self.user.last_name + ', ' + self.user.first_name
+
 
 class Company(models.Model):
     company_name = models.CharField(max_length=50)
     location = models.CharField(max_length=50)
     sub_industry = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name_plural = 'Companies'
 
     def __str__(self):
         return self.company_name

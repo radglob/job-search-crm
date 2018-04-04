@@ -14,9 +14,15 @@ urlpatterns = [
     path("_create_profile", views.create_profile, name="create_profile"),
     path("login", views.login, name="login"),
     path("logout", views.logout, name="logout"),
-    path("applications", login_required(views.ApplicationsView.as_view()), name="applications"),
     path(
-        "applications/new", login_required(views.NewApplicationView.as_view()), name="new_application"
+        "applications",
+        login_required(views.ApplicationsView.as_view()),
+        name="applications",
+    ),
+    path(
+        "applications/new",
+        login_required(views.NewApplicationView.as_view()),
+        name="new_application",
     ),
     path(
         "applications/create",

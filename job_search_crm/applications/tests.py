@@ -3,9 +3,13 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .models import CustomerProfile
-
-PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
+from .models import (
+    Application,
+    Company,
+    CustomerProfile,
+    Event,
+    Position
+)
 
 
 class IndexTests(TestCase):
@@ -116,3 +120,61 @@ class CreateProfileTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(self.user.first_name, "Joe")
+
+
+class RestrictedViewsTests(TestCase):
+
+    def setUp(self):
+        users = (User.objects.create_user(*info) for info in (
+            ('joe', 'joe@email.com', 'password'),
+            ('jane', 'jane@email.com', 'password')))
+        profiles = (CustomerProfile.objects.create(user=user) for user in users)
+        company = Company.objects.create(
+            company_name='Company Inc.',
+            location='City, State',
+            sub_industry='Software'
+        )
+        position = Position.objects.create(
+            company=company,
+            position_name='Software Engineer',
+            min_salary=50000,
+            max_salary=70000,
+            is_remote=False,
+            tech_stack=''
+        )
+        applications = [Application.objects.create(
+            applicant=profile,
+            position=position
+        ) for profile in profiles]
+        events = [Event.objects.create(
+            application=application,
+            description='Did a thing.'
+        ) for application in applications]
+        self.client.login(username='joe', password='password')
+
+    def test_user_can_see_own_application(self):
+        resp = self.client.get('/applications/1')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_user_cannot_see_others_applications(self):
+        resp = self.client.get('/applications/2')
+        self.assertEqual(resp.status_code, 302)
+
+    def test_user_cannot_delete_other_events(self):
+        resp = self.client.get('/applications/2/events/2/delete')
+        event = Event.objects.get(pk=1)
+        self.assertIsNotNone(event)
+
+    def test_user_can_delete_own_events(self):
+        resp = self.client.get('/applications/1/events/1/delete')
+        with self.assertRaises(Event.DoesNotExist):
+            Event.objects.get(pk=1)
+
+    def test_user_cannot_create_events_for_others(self):
+        resp = self.client.post('/applications/2/events/create', {
+            'description': 'Initial phone screening.',
+            'date': datetime.today()
+        })
+        with self.assertRaises(Event.DoesNotExist):
+            Event.objects.get(pk=3)
+

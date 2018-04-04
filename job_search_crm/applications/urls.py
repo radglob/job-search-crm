@@ -23,6 +23,6 @@ urlpatterns = [
         name="create_new_application",
     ),
     path('applications/<int:application_id>', views.application_by_id, name='application'),
-    path('applications/event/new', views.NewEventView.as_view(), name='new_event'),
-    path('applications/event/create', views.create_new_event, name='create_event'),
+    path('applications/<int:application_id>/event/new', views.NewEventView.as_view(), name='new_event'),
+    path('applications/<int:application_id>/event/create', views.create_new_event, name='create_event'),
 ]

@@ -11,16 +11,19 @@
   {% endif %}
   <div>
     <h2>Timeline</h2>
-    {% if application.events %}
+    {% if application.event_set %}
     <ul>
-      {% for event in application.events %}
-      <li>{{ event }}</li>
+      {% for event in application.event_set.all %}
+      <li>
+        <p>{{ event.description }}</p>
+        <p>On {{ event.date }}</p>
+      </li>
       {% endfor %}
     </ul>
     {% else %}
     <p>No events so far.</p>
     {% endif %}
-    <a href="{% url 'applications:new_event' %}">Create new event</a>
+    <a href="{% url 'applications:new_event' application.id %}">Create new event</a>
   </div>
 </div>
 {% endblock %}

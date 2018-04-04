@@ -157,12 +157,19 @@ class NewEventView(FormView):
     form_class = NewEventForm
     success_url = "/applications"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['application_id'] = self.kwargs['application_id']
+        return context
 
-def create_new_event(request):
+
+def create_new_event(request, application_id):
+    application = get_object_or_404(Application, pk=application_id)
     event = Event.objects.create(
-        application=request.POST['application'],
+        application=application,
         description=request.POST['description'],
         date=request.POST['date']
     )
+    event.save()
     messages.success = 'New event added.'
     return HttpResponseRedirect(reverse('applications:applications'))

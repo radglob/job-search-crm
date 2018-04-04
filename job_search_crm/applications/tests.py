@@ -43,7 +43,8 @@ class LoginTests(TestCase):
 
     def test_login_with_incorrect_password(self):
         resp = self.client.post(
-            "/login", {"username": "joe", "password": "badpassword"}, follow=True)
+            "/login", {"username": "joe", "password": "badpassword"}, follow=True
+        )
         self.assertIn("Username or password did not match.", resp.content.decode())
 
     def test_login_with_correct_password_and_no_profile(self):

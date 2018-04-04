@@ -127,21 +127,24 @@ class NewApplicationView(FormView):
 
 @login_required
 def create_new_application(request):
+    form = NewApplicationForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
     company, __ = Company.objects.get_or_create(
-        company_name=request.POST["company_name"],
+        company_name=data["company_name"],
         defaults={
-            "location": request.POST["company_location"],
-            "sub_industry": request.POST["company_sub_industry"],
+            "location": data["company_location"],
+            "sub_industry": data["company_sub_industry"],
         },
     )
     position, __ = Position.objects.get_or_create(
         company=company,
-        position_name=request.POST["position_name"],
+        position_name=data["position_name"],
         defaults={
-            "is_remote": request.POST.get("is_remote", False),
-            "min_salary": request.POST["min_salary"],
-            "max_salary": request.POST["max_salary"],
-            "tech_stack": request.POST["tech_stack"],
+            "is_remote": data.get("is_remote", False),
+            "min_salary": data["min_salary"],
+            "max_salary": data["max_salary"],
+            "tech_stack": data["tech_stack"],
         },
     )
     application, created = Application.objects.get_or_create(

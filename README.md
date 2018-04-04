@@ -13,3 +13,9 @@ The test server can be run with `pipenv run python manage.py runserver`.
 
 ## Testing:
 You can run tests with `make test`. If you want a coverage report, run `make coverage`.
+
+## Code Quality
+Try to add tests as you write code. Untested code is broken by design.
+
+We are using [Black](https://github.com/ambv/black) to format our code. I recommend setting up a pre-commit hook
+to run it automatically for you. You can use the one in the hooks directory, or write your own.

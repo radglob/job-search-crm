@@ -77,7 +77,7 @@ def create_profile(request):
         user=request.user, bio=bio, location=location, birth_date=birth_date
     )
     customer_profile.save()
-    return HttpResponseRedirect(reverse("applications:home"))
+    return HttpResponseRedirect(reverse("applications:applications"))
 
 
 def login(request):

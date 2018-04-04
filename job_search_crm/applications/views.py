@@ -21,7 +21,8 @@ def index(request):
         try:
             customer = CustomerProfile.objects.get(user=request.user)
         except CustomerProfile.DoesNotExist:
-            return HttpResponseRedirect(reverse('applications:create_profile'))
+            return HttpResponseRedirect(reverse("applications:create_profile"))
+
     return render(request, "applications/index.html", {"customer": customer})
 
 
@@ -85,18 +86,17 @@ def login(request):
     if user:
         auth_login(request, user)
     else:
-        return render(
-            request,
-            "applications/index.html",
-            {"error_message": "Username or password did not match."},
-            status=401,
-        )
+        messages.error(request, "Username or password did not match.")
+        return HttpResponseRedirect(reverse("applications:home"))
 
     if not user.is_superuser:
         try:
             profile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
             return HttpResponseRedirect(reverse("applications:get_profile_information"))
+
+    if request.GET.get("next"):
+        return HttpResponseRedirect(request.GET["next"])
 
     return HttpResponseRedirect(reverse("applications:applications"))
 
@@ -145,11 +145,11 @@ def create_new_application(request):
         applicant=request.user.customerprofile, position=position
     )
     if not created:
-        messages.error = "This application already exists."
+        messages.error(request, "This application already exists.")
         return HttpResponseRedirect(reverse("applications:applications"))
 
     else:
-        messages.success = "New application created!"
+        messages.success(request, "New application created!")
         return HttpResponseRedirect(reverse("applications:applications"))
 
 
@@ -159,11 +159,15 @@ def application_by_id(request, application_id):
         application = Application.objects.get(pk=application_id)
         if application.applicant.user.id != request.user.id:
             return HttpResponseRedirect(reverse("applications:applications"))
+
         return render(
-            request, "applications/application_details.html", {"application": application}
-    )
+            request,
+            "applications/application_details.html",
+            {"application": application},
+        )
+
     except Application.DoesNotExist:
-        return HttpResponseRedirect(reverse('applications:applications'))
+        return HttpResponseRedirect(reverse("applications:applications"))
 
 
 class NewEventView(FormView):
@@ -187,11 +191,15 @@ def create_new_event(request, application_id):
             date=request.POST["date"],
         )
         event.save()
-        messages.success = "New event added."
+        messages.success(request, "New event added.")
         return HttpResponseRedirect(
-            reverse("applications:application", kwargs={"application_id": application_id}))
+            reverse(
+                "applications:application", kwargs={"application_id": application_id}
+            )
+        )
+
     else:
-        return HttpResponseRedirect(reverse('applications:applications'))
+        return HttpResponseRedirect(reverse("applications:applications"))
 
 
 @login_required

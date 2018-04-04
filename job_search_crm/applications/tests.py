@@ -3,13 +3,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .models import (
-    Application,
-    Company,
-    CustomerProfile,
-    Event,
-    Position
-)
+from .models import (Application, Company, CustomerProfile, Event, Position)
 
 
 class IndexTests(TestCase):
@@ -49,9 +43,9 @@ class LoginTests(TestCase):
 
     def test_login_with_incorrect_password(self):
         resp = self.client.post(
-            "/login", {"username": "joe", "password": "badpassword"}
+            "/login", {"username": "joe", "password": "badpassword"}, follow=True
         )
-        self.assertEqual(resp.status_code, 401)
+        self.assertIn("Username or password did not match.", resp.content.decode())
 
     def test_login_with_correct_password_and_no_profile(self):
         resp = self.client.post("/login", {"username": "jane", "password": "password"})
@@ -125,56 +119,57 @@ class CreateProfileTests(TestCase):
 class RestrictedViewsTests(TestCase):
 
     def setUp(self):
-        users = (User.objects.create_user(*info) for info in (
-            ('joe', 'joe@email.com', 'password'),
-            ('jane', 'jane@email.com', 'password')))
+        users = (
+            User.objects.create_user(*info)
+            for info in (
+                ("joe", "joe@email.com", "password"),
+                ("jane", "jane@email.com", "password"),
+            )
+        )
         profiles = (CustomerProfile.objects.create(user=user) for user in users)
         company = Company.objects.create(
-            company_name='Company Inc.',
-            location='City, State',
-            sub_industry='Software'
+            company_name="Company Inc.", location="City, State", sub_industry="Software"
         )
         position = Position.objects.create(
             company=company,
-            position_name='Software Engineer',
+            position_name="Software Engineer",
             min_salary=50000,
             max_salary=70000,
             is_remote=False,
-            tech_stack=''
+            tech_stack="",
         )
-        applications = [Application.objects.create(
-            applicant=profile,
-            position=position
-        ) for profile in profiles]
-        events = [Event.objects.create(
-            application=application,
-            description='Did a thing.'
-        ) for application in applications]
-        self.client.login(username='joe', password='password')
+        applications = [
+            Application.objects.create(applicant=profile, position=position)
+            for profile in profiles
+        ]
+        events = [
+            Event.objects.create(application=application, description="Did a thing.")
+            for application in applications
+        ]
+        self.client.login(username="joe", password="password")
 
     def test_user_can_see_own_application(self):
-        resp = self.client.get('/applications/1')
+        resp = self.client.get("/applications/1")
         self.assertEqual(resp.status_code, 200)
 
     def test_user_cannot_see_others_applications(self):
-        resp = self.client.get('/applications/2')
+        resp = self.client.get("/applications/2")
         self.assertEqual(resp.status_code, 302)
 
     def test_user_cannot_delete_other_events(self):
-        resp = self.client.get('/applications/2/events/2/delete')
+        resp = self.client.get("/applications/2/events/2/delete")
         event = Event.objects.get(pk=1)
         self.assertIsNotNone(event)
 
     def test_user_can_delete_own_events(self):
-        resp = self.client.get('/applications/1/events/1/delete')
+        resp = self.client.get("/applications/1/events/1/delete")
         with self.assertRaises(Event.DoesNotExist):
             Event.objects.get(pk=1)
 
     def test_user_cannot_create_events_for_others(self):
-        resp = self.client.post('/applications/2/events/create', {
-            'description': 'Initial phone screening.',
-            'date': datetime.today()
-        })
+        resp = self.client.post(
+            "/applications/2/events/create",
+            {"description": "Initial phone screening.", "date": datetime.today()},
+        )
         with self.assertRaises(Event.DoesNotExist):
             Event.objects.get(pk=3)
-

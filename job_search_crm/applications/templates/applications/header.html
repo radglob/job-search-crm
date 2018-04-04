@@ -7,14 +7,25 @@
       <li><a href="{% url 'applications:applications' %}">Applications</a></li>
       <li><a href="{% url 'applications:logout' %}">Logout<a></li>
       {% else %}
-      <form action="{% url 'applications:login' %}" method="POST">
-        {% csrf_token %}
-        <input type="text" name="username" placeholder="Username" />
-        <input type="password" name="password" placeholder="Password" />
-        <input type="submit" value="Login" />
-      </form>
-      <a href="{% url 'applications:signup' %}">Sign up</a>
+      {% if messages %}
+      {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+          <strong>{{ message }}</strong>
+        {% endif %}
+      {% endfor %}
       {% endif %}
+      {% if request.GET.next %}
+      <form action="{% url 'applications:login' %}?next={{ request.GET.next }}" method="POST">
+      {% else %}
+      <form action="{% url 'applications:login' %}" method="POST">
+        {% endif %}
+          {% csrf_token %}
+          <input type="text" name="username" placeholder="Username" />
+          <input type="password" name="password" placeholder="Password" />
+          <input type="submit" value="Login" />
+        </form>
+        <a href="{% url 'applications:signup' %}">Sign up</a>
+        {% endif %}
     </ul>
   </nav>
 </header>

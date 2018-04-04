@@ -1,6 +1,7 @@
 {% extends 'applications/base.html' %}
 
 {% block body %}
+<a href="{% url 'applications:applications' %}">Back to applications</a>
 <div>
   <h2>Application to {{ application.position.company.company_name }}</h2>
   <p>{{ application.position.position_name }}</p>

@@ -1,18 +1,3 @@
 {% extends "applications/base.html" %}
 {% block body %}
-  {% if customer %}
-  <span>Welcome, {{ customer.user.first_name }}!</span>
-  <a href="{% url 'applications:logout' %}">Logout</a>
-  {% else %}
-  {% if error_message %}
-  <strong>{{ error_message }}</strong>
-  {% endif %}
-  <form action="{% url 'applications:login' %}" method="POST">
-    {% csrf_token %}
-    <input type="text" name="username" placeholder="Username" />
-    <input type="password" name="password" placeholder="Password" />
-    <input type="submit" value="Login" />
-  </form>
-  <a href="{% url 'applications:signup' %}">Sign up</a>
-  {% endif %}
 {% endblock %}

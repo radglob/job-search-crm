@@ -94,8 +94,8 @@ def login(request):
             profile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
             return HttpResponseRedirect(reverse("applications:get_profile_information"))
-
-    return render(request, "applications/index.html")
+    
+    return HttpResponseRedirect(reverse("applications:applications"))
 
 
 def logout(request):
@@ -172,4 +172,4 @@ def create_new_event(request, application_id):
     )
     event.save()
     messages.success = 'New event added.'
-    return HttpResponseRedirect(reverse('applications:applications'))
+    return HttpResponseRedirect(reverse('applications:application', kwargs={'application_id': application_id}))

@@ -29,6 +29,11 @@ ALLOWED_HOSTS = []
 
 APPEND_SLASH = True
 
+LOGIN_URL = "/"
+
+MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
+
+
 # Application definition
 
 INSTALLED_APPS = [

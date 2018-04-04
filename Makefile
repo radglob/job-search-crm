@@ -3,4 +3,4 @@ init:
 	pipenv install --dev
 
 test:
-	pipenv run python job_search_crm/manage.py test
+	cd job_search_crm && pipenv run python manage.py test

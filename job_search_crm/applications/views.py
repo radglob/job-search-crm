@@ -94,6 +94,8 @@ def login(request):
             profile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
             return HttpResponseRedirect(reverse("applications:get_profile_information"))
+    if request.GET.get('next'):
+        return HttpResponseRedirect(request.GET['next'])
 
     if request.GET.get("next"):
         return HttpResponseRedirect(request.GET["next"])

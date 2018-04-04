@@ -17,4 +17,3 @@ class NewApplicationForm(forms.Form):
 class NewEventForm(forms.Form):
     description = forms.CharField(widget=forms.Textarea)
     date = forms.DateField(initial=timezone.now)
-

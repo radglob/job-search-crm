@@ -94,7 +94,7 @@ def login(request):
             profile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
             return HttpResponseRedirect(reverse("applications:get_profile_information"))
-    
+
     return HttpResponseRedirect(reverse("applications:applications"))
 
 
@@ -147,9 +147,12 @@ def create_new_application(request):
         messages.success = "New application created!"
         return HttpResponseRedirect(reverse("applications:applications"))
 
+
 def application_by_id(request, application_id):
     application = get_object_or_404(Application, pk=application_id)
-    return render(request, 'applications/application_details.html', {'application': application})
+    return render(
+        request, "applications/application_details.html", {"application": application}
+    )
 
 
 class NewEventView(FormView):
@@ -159,7 +162,7 @@ class NewEventView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['application_id'] = self.kwargs['application_id']
+        context["application_id"] = self.kwargs["application_id"]
         return context
 
 
@@ -167,9 +170,18 @@ def create_new_event(request, application_id):
     application = get_object_or_404(Application, pk=application_id)
     event = Event.objects.create(
         application=application,
-        description=request.POST['description'],
-        date=request.POST['date']
+        description=request.POST["description"],
+        date=request.POST["date"],
     )
     event.save()
-    messages.success = 'New event added.'
-    return HttpResponseRedirect(reverse('applications:application', kwargs={'application_id': application_id}))
+    messages.success = "New event added."
+    return HttpResponseRedirect(
+        reverse("applications:application", kwargs={"application_id": application_id})
+    )
+
+
+def delete_event(request, application_id, event_id):
+    Event.objects.get(pk=event_id).delete()
+    return HttpResponseRedirect(
+        reverse("applications:application", kwargs={"application_id": application_id})
+    )

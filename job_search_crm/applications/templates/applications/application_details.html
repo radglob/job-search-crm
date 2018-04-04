@@ -16,6 +16,7 @@
     <ul>
       {% for event in application.event_set.all %}
       <li>
+        <a href="{% url 'applications:delete_event' application.id event.id %}" onclick="return confirm('Delete this event?')">&#x274c;</a>
         <p>{{ event.description }}</p>
         <p>On {{ event.date }}</p>
       </li>

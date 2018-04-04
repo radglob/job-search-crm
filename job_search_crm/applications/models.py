@@ -66,8 +66,7 @@ class Event(models.Model):
     date = models.DateField(default=timezone.now)
 
     class Meta:
-        ordering = ['-date']
+        ordering = ["-date"]
 
     def __str__(self):
         return "{} for {}".format(self.description, self.application)
-

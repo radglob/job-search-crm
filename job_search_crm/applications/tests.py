@@ -100,20 +100,21 @@ class CreateProfileTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("joe", "joe@email.com", "password")
 
-    def create_profile_success(self):
+    def test_create_profile_success(self):
         self.client.login(username="joe", password="password")
         resp = self.client.post(
-            "/create_profile",
+            "/_create_profile",
             {
                 "first_name": "Joe",
                 "last_name": "Smith",
                 "bio": "A little about Joe...",
                 "location": "New York",
-                "birth_date": datetime.today(),
+                "birth_date": datetime.today().strftime("%Y-%m-%d"),
             },
         )
-        self.assertEqual(resp.status_code, 302)
+        self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Joe")
+        self.assertRedirects(resp, "/applications")
 
 
 class RestrictedViewsTests(TestCase):

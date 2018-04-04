@@ -17,5 +17,5 @@ You can run tests with `make test`. If you want a coverage report, run `make cov
 ## Code Quality
 Try to add tests as you write code. Untested code is broken by design.
 
-We are using [Black](https://github.com/ambv/black) to format our code. I recommend setting up a pre-commit hook
-to run it automatically for you. You can use the one in the hooks directory, or write your own.
+We are using [Black](https://github.com/ambv/black) to format our code. Try to remember to run it before you commit.
+If you're using a pre-commit hook for this, it leave your branch dirty.

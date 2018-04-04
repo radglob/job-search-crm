@@ -20,7 +20,7 @@ def index(request):
         try:
             customer = CustomerProfile.objects.get(user=request.user)
         except CustomerProfile.DoesNotExist:
-            pass
+            return HttpResponseRedirect(reverse('applications:create_profile'))
     return render(request, "applications/index.html", {"customer": customer})
 
 

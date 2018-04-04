@@ -24,12 +24,12 @@ class IndexTests(TestCase):
     def test_index_with_user(self):
         self.client.login(username="joe", password="password")
         resp = self.client.get("/")
-        self.assertIn("Welcome, Joe!", resp.content.decode())
+        self.assertIn("Hi, Joe!", resp.content.decode())
 
     def test_index_with_user_no_profile(self):
         self.client.login(username="jane", password="password")
         resp = self.client.get("/")
-        self.assertIn("Login", resp.content.decode())
+        self.assertEqual(resp.status_code, 302)
 
 
 class LoginTests(TestCase):
@@ -41,7 +41,7 @@ class LoginTests(TestCase):
 
     def test_login_with_correct_password_and_profile(self):
         resp = self.client.post("/login", {"username": "joe", "password": "password"})
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 302)
 
     def test_login_with_incorrect_password(self):
         resp = self.client.post(

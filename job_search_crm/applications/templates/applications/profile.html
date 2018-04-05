@@ -1,13 +1,16 @@
 {% extends 'applications/base.html' %}
 
 {% block body %}
-<div>
-  <p>Username: {{ request.user.username }}</p>
-  <p>First name: {{ request.user.first_name }}</p>
-  <p>Last name: {{ request.user.last_name }}</p>
-  <p>Email: {{ request.user.email }}</p>
-  <p>Bio: {{ request.user.customerprofile.bio }}</p>
-  <p>Birth day: {{ request.user.customerprofile.birth_date }}</p>
-  <p>Location: {{ request.user.customerprofile.location }}</p>
-</div>
+{% if messages %}
+  {% for message in messages %}
+    {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+    <strong>{{ message }}</strong>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+<form action="{% url 'applications:edit_profile' request.user.id %}" method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type="submit" value="Update profile" />
+</form>
 {% endblock %}

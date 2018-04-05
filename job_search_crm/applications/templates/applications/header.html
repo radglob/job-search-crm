@@ -5,7 +5,7 @@
       {% if request.user.is_authenticated %}
       <li>Hi, <a href="{% url 'applications:view_profile' request.user.id %}">{{ request.user.first_name }}</a>!</li>
       <li><a href="{% url 'applications:applications' %}">Applications</a></li>
-      <li><a href="{% url 'applications:logout' %}">Logout<a></li>
+      <li><a href="{% url 'applications:logout' %}">Logout</a></li>
       {% else %}
       {% if messages %}
       {% for message in messages %}

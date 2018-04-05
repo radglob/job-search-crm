@@ -17,3 +17,13 @@ class NewApplicationForm(forms.Form):
 class NewEventForm(forms.Form):
     description = forms.CharField(widget=forms.Textarea)
     date = forms.DateField(initial=timezone.now)
+
+
+class CustomerProfileForm(forms.Form):
+    username = forms.CharField()
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    email = forms.EmailField()
+    bio = forms.CharField(widget=forms.Textarea)
+    birth_date = forms.DateField()
+    location = forms.CharField()

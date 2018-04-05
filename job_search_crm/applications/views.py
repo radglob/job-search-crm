@@ -12,7 +12,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
-from .forms import NewApplicationForm, NewEventForm
+from .forms import CustomerProfileForm, NewApplicationForm, NewEventForm
 
 
 def index(request):
@@ -222,6 +222,7 @@ def edit_profile(request, user_id):
     user_keys = ("first_name", "last_name", "email")
     profile_keys = ("bio", "birth_date", "location")
 
+    print(request.POST)
     for k in user_keys:
         value = request.POST.get(k)
         if value:
@@ -239,5 +240,17 @@ def edit_profile(request, user_id):
     )
 
 
-def view_profile(request, user_id):
-    return render(request, "applications/profile.html")
+class ProfileView(FormView):
+    template_name = "applications/profile.html"
+    form_class = CustomerProfileForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["username"] = self.request.user.username
+        initial["first_name"] = self.request.user.first_name
+        initial["last_name"] = self.request.user.last_name
+        initial["email"] = self.request.user.email
+        initial["bio"] = self.request.user.customerprofile.bio
+        initial["birth_date"] = self.request.user.customerprofile.birth_date
+        initial["location"] = self.request.user.customerprofile.location
+        return initial

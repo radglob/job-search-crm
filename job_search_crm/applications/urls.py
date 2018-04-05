@@ -14,7 +14,11 @@ urlpatterns = [
         name="get_profile_information",
     ),
     path("accounts/profile/create", views.create_profile, name="create_profile"),
-    path("accounts/<int:user_id>/profile", views.view_profile, name="view_profile"),
+    path(
+        "accounts/<int:user_id>/profile",
+        views.ProfileView.as_view(),
+        name="view_profile",
+    ),
     path("accounts/login", views.login, name="login"),
     path("accounts/<int:user_id>/edit", views.edit_profile, name="edit_profile"),
     path("logout", views.logout, name="logout"),

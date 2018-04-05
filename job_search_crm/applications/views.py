@@ -240,4 +240,4 @@ def edit_profile(request, user_id):
 
 
 def view_profile(request, user_id):
-    return HttpResponse("view user profile")
+    return render(request, "applications/profile.html")

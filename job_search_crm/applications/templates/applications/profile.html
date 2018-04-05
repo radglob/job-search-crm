@@ -1,0 +1,13 @@
+{% extends 'applications/base.html' %}
+
+{% block body %}
+<div>
+  <p>Username: {{ request.user.username }}</p>
+  <p>First name: {{ request.user.first_name }}</p>
+  <p>Last name: {{ request.user.last_name }}</p>
+  <p>Email: {{ request.user.email }}</p>
+  <p>Bio: {{ request.user.customerprofile.bio }}</p>
+  <p>Birth day: {{ request.user.customerprofile.birth_date }}</p>
+  <p>Location: {{ request.user.customerprofile.location }}</p>
+</div>
+{% endblock %}

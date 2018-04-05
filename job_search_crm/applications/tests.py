@@ -42,17 +42,23 @@ class LoginTests(TestCase):
         CustomerProfile.objects.create(user=user)
 
     def test_login_with_correct_password_and_profile(self):
-        resp = self.client.post("/login", {"username": "joe", "password": "password"})
+        resp = self.client.post(
+            "/accounts/login", {"username": "joe", "password": "password"}
+        )
         self.assertEqual(resp.status_code, 302)
 
     def test_login_with_incorrect_password(self):
         resp = self.client.post(
-            "/login", {"username": "joe", "password": "badpassword"}, follow=True
+            "/accounts/login",
+            {"username": "joe", "password": "badpassword"},
+            follow=True,
         )
         self.assertIn("Username or password did not match.", resp.content.decode())
 
     def test_login_with_correct_password_and_no_profile(self):
-        resp = self.client.post("/login", {"username": "jane", "password": "password"})
+        resp = self.client.post(
+            "/accounts/login", {"username": "jane", "password": "password"}
+        )
         self.assertEqual(resp.status_code, 302)
 
 
@@ -65,7 +71,7 @@ class CreateAccountTests(TestCase):
 
     def test_create_account_success(self):
         resp = self.client.post(
-            "/create_account",
+            "/accounts/register",
             {
                 "username": "joe",
                 "email": "joe@email.com",
@@ -77,7 +83,7 @@ class CreateAccountTests(TestCase):
 
     def test_create_account_passwords_do_not_match(self):
         resp = self.client.post(
-            "/create_account",
+            "/accounts/register",
             {
                 "username": "joe",
                 "email": "joe@email.com",
@@ -90,7 +96,7 @@ class CreateAccountTests(TestCase):
 
     def test_create_account_integrity_error(self):
         resp = self.client.post(
-            "/create_account",
+            "/accounts/register",
             {
                 "username": "jane",
                 "email": "jane@email.com",
@@ -109,7 +115,7 @@ class CreateProfileTests(TestCase):
     def test_create_profile_success(self):
         self.client.login(username="joe", password="password")
         resp = self.client.post(
-            "/_create_profile",
+            "/accounts/profile/create",
             {
                 "first_name": "Joe",
                 "last_name": "Smith",
@@ -184,3 +190,33 @@ class RestrictedViewsTests(TestCase):
         )
         with self.assertRaises(Event.DoesNotExist):
             Event.objects.get(pk=3)
+
+
+class EditProfileTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        user = User.objects.create_user(
+            "joe", "joe@email.com", "password", first_name="Joe", last_name="Smith"
+        )
+        CustomerProfile.objects.create(
+            user=user, bio="A simple man", location="Baltimore, MD"
+        )
+
+    def test_user_can_edit_profile(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {
+                "first_name": "John",
+                "last_name": "Doe",
+                "bio": "Trying to be anonymous.",
+            },
+        )
+        user = User.objects.get(pk=1)
+        self.assertEqual(user.first_name, "John")
+        self.assertEqual(user.last_name, "Doe")
+
+        profile = CustomerProfile.objects.get(pk=1)
+        self.assertEqual(profile.bio, "Trying to be anonymous.")

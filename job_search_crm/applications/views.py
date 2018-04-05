@@ -216,3 +216,28 @@ def delete_event(request, application_id, event_id):
     return HttpResponseRedirect(
         reverse("applications:application", kwargs={"application_id": application_id})
     )
+
+
+def edit_profile(request, user_id):
+    user_keys = ("first_name", "last_name", "email")
+    profile_keys = ("bio", "birth_date", "location")
+
+    for k in user_keys:
+        value = request.POST.get(k)
+        if value:
+            setattr(request.user, k, value)
+    request.user.save()
+
+    for k in profile_keys:
+        value = request.POST.get(k)
+        if value:
+            setattr(request.user.customerprofile, k, value)
+    request.user.customerprofile.save()
+    messages.success(request, "Profile updated successfully.")
+    return HttpResponseRedirect(
+        reverse("applications:view_profile", kwargs={"user_id": request.user.id})
+    )
+
+
+def view_profile(request, user_id):
+    return HttpResponse("view user profile")

@@ -8,7 +8,9 @@ from .models import (Application, Company, CustomerProfile, Event, Position)
 
 class IndexTests(TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
         user = User.objects.create_user(
             "joe", "joe@email.com", "password", first_name="Joe"
         )
@@ -32,7 +34,9 @@ class IndexTests(TestCase):
 
 class LoginTests(TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
         user = User.objects.create_user("joe", "joe@email.com", "password")
         User.objects.create_user("jane", "jane@email.com", "password")
         CustomerProfile.objects.create(user=user)
@@ -54,7 +58,9 @@ class LoginTests(TestCase):
 
 class CreateAccountTests(TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
         User.objects.create_user("jane", "jane@email.com", "password")
 
     def test_create_account_success(self):
@@ -119,7 +125,9 @@ class CreateProfileTests(TestCase):
 
 class RestrictedViewsTests(TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
         users = (
             User.objects.create_user(*info)
             for info in (
@@ -147,6 +155,8 @@ class RestrictedViewsTests(TestCase):
             Event.objects.create(application=application, description="Did a thing.")
             for application in applications
         ]
+
+    def setUp(self):
         self.client.login(username="joe", password="password")
 
     def test_user_can_see_own_application(self):

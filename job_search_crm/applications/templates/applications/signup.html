@@ -1,4 +1,5 @@
 {% extends "applications/base.html" %}
+{% load bootstrap4 %}
 {% block body %}
 <h1>Sign up</h1>
 {% if error_message %}
@@ -14,6 +15,6 @@
   <input type="password" name="password" required />
   <label for="confirm_password">Confirm Password</label>
   <input type="password" name="confirm_password" required />
-  <input type="submit" value="Create account" />
+  <input type="submit" class="btn btn-embossed btn-primary" value="Create account" />
 </form>
 {% endblock %}

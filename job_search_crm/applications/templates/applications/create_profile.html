@@ -1,4 +1,5 @@
 {% extends "applications/base.html" %}
+{% load bootstrap4 %}
 {% block body %}
 <h1>Create customer profile</h1>
 <form action="{% url 'applications:create_profile' %}" method="POST">

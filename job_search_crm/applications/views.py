@@ -23,7 +23,7 @@ def index(request):
         try:
             customer = CustomerProfile.objects.get(user=request.user)
         except CustomerProfile.DoesNotExist:
-            return HttpResponseRedirect(reverse("applications:create_profile"))
+            return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
     return render(request, "applications/index.html", {"customer": customer})
 
@@ -110,13 +110,19 @@ def logout(request):
     return HttpResponseRedirect(reverse("applications:home"))
 
 
-class ApplicationsView(ListView):
-    template_name = "applications/applications.html"
-    context_object_name = "applications_list"
+@login_required
+def applications(request):
+    try:
+        customer = CustomerProfile.objects.get(user=request.user)
+        applications = Application.objects.filter(applicant=customer)
+        return render(
+            request,
+            "applications/applications.html",
+            {"applications_list": applications},
+        )
 
-    def get_queryset(self):
-        customer = CustomerProfile.objects.get(user=self.request.user)
-        return Application.objects.filter(applicant=customer)
+    except CustomerProfile.DoesNotExist:
+        return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
 
 class NewApplicationView(FormView):

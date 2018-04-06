@@ -1,5 +1,6 @@
 {% load bootstrap4 %}
 <header>
+<<<<<<< HEAD
     <nav class="navbar navbar-fixed-top navbar-inverse navbar-expand-lg" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -40,3 +41,39 @@
         </div>
     </nav>
 </header>
+=======
+  <nav>
+    <ul>
+      <li><a href="{% url 'applications:home' %}">Job Search CRM</a></li>
+      {% if request.user.is_authenticated %}
+      {% if request.user.first_name %}
+      <li>Hi, <a href="{% url 'applications:view_profile' request.user.id %}">{{ request.user.first_name }}</a>!</li>
+      {% else %}
+      <li>Hi, Stranger!</li>
+      {% endif %}
+      <li><a href="{% url 'applications:applications' %}">Applications</a></li>
+      <li><a href="{% url 'applications:logout' %}">Logout</a></li>
+      {% else %}
+      {% if messages %}
+      {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+          <strong>{{ message }}</strong>
+        {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% if request.GET.next %}
+      <form action="{% url 'applications:login' %}?next={{ request.GET.next }}" method="POST">
+      {% else %}
+      <form action="{% url 'applications:login' %}" method="POST">
+        {% endif %}
+          {% csrf_token %}
+          <input type="text" name="username" placeholder="Username" />
+          <input type="password" name="password" placeholder="Password" />
+          <input type="submit" value="Login" />
+        </form>
+        <a href="{% url 'applications:signup' %}">Sign up</a>
+        {% endif %}
+    </ul>
+  </nav>
+</header>
+>>>>>>> master

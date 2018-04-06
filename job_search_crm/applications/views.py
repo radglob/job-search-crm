@@ -1,9 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import (
     authenticate, login as auth_login, logout as auth_logout
 )
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -12,7 +14,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
-from .forms import NewApplicationForm, NewEventForm
+from .forms import (CustomerProfileForm, NewApplicationForm, NewEventForm, SignupForm)
 
 
 def index(request):
@@ -21,13 +23,14 @@ def index(request):
         try:
             customer = CustomerProfile.objects.get(user=request.user)
         except CustomerProfile.DoesNotExist:
-            return HttpResponseRedirect(reverse("applications:create_profile"))
+            return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
     return render(request, "applications/index.html", {"customer": customer})
 
 
-def signup(request):
-    return render(request, "applications/signup.html")
+class SignupView(FormView):
+    template_name = "applications/signup.html"
+    form_class = SignupForm
 
 
 def create_account(request):
@@ -37,26 +40,23 @@ def create_account(request):
     ]
     if password == confirm_password:
         try:
+            validate_password(password)
             u = User.objects.create_user(username, email=email, password=password)
             u.save()
             auth_login(request, u)
             return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
-        except IntegrityError as e:
-            return render(
-                request,
-                "applications/signup.html",
-                {"error_message": e.args[0]},
-                status=409,
-            )
+        except IntegrityError:
+            messages.error(request, "A user with this username already exists.")
+            return HttpResponseRedirect(reverse("applications:signup"))
+
+        except ValidationError:
+            messages.error(request, "This password is not valid.")
+            return HttpResponseRedirect(reverse("applications:signup"))
 
     else:
-        return render(
-            request,
-            "applications/signup.html",
-            {"error_message": "Passwords do not match."},
-            status=400,
-        )
+        messages.error(request, "Passwords do not match.")
+        return HttpResponseRedirect(reverse("applications:signup"))
 
 
 @login_required
@@ -110,13 +110,19 @@ def logout(request):
     return HttpResponseRedirect(reverse("applications:home"))
 
 
-class ApplicationsView(ListView):
-    template_name = "applications/applications.html"
-    context_object_name = "applications_list"
+@login_required
+def applications(request):
+    try:
+        customer = CustomerProfile.objects.get(user=request.user)
+        applications = Application.objects.filter(applicant=customer)
+        return render(
+            request,
+            "applications/applications.html",
+            {"applications_list": applications},
+        )
 
-    def get_queryset(self):
-        customer = CustomerProfile.objects.get(user=self.request.user)
-        return Application.objects.filter(applicant=customer)
+    except CustomerProfile.DoesNotExist:
+        return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
 
 class NewApplicationView(FormView):
@@ -216,3 +222,76 @@ def delete_event(request, application_id, event_id):
     return HttpResponseRedirect(
         reverse("applications:application", kwargs={"application_id": application_id})
     )
+
+
+def edit_profile(request, user_id):
+    user_keys = ("first_name", "last_name", "email")
+    profile_keys = ("bio", "birth_date", "location")
+    password_keys = ("password", "confirm_password")
+
+    for k in user_keys:
+        value = request.POST.get(k)
+        if value:
+            setattr(request.user, k, value)
+
+    for k in profile_keys:
+        value = request.POST.get(k)
+        if value:
+            setattr(request.user.customerprofile, k, value)
+
+    password_values = (password, confirm_password) = [
+        request.POST.get(k) for k in password_keys
+    ]
+    if all(password_values):
+        try:
+            validate_password(password)
+        except ValidationError:
+            messages.error(request, "This password isn't strong enough.")
+            return HttpResponseRedirect(
+                reverse(
+                    "applications:view_profile", kwargs={"user_id": request.user.id}
+                )
+            )
+
+        if request.user.check_password(password):
+            messages.error(request, "This is your current password.")
+            return HttpResponseRedirect(
+                reverse(
+                    "applications:view_profile", kwargs={"user_id": request.user.id}
+                )
+            )
+
+        elif password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return HttpResponseRedirect(
+                reverse(
+                    "applications:view_profile", kwargs={"user_id": request.user.id}
+                )
+            )
+
+        else:
+            request.user.set_password(password)
+
+    request.user.save()
+    request.user.customerprofile.save()
+
+    messages.success(request, "Profile updated successfully.")
+    return HttpResponseRedirect(
+        reverse("applications:view_profile", kwargs={"user_id": request.user.id})
+    )
+
+
+class ProfileView(FormView):
+    template_name = "applications/profile.html"
+    form_class = CustomerProfileForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["username"] = self.request.user.username
+        initial["first_name"] = self.request.user.first_name
+        initial["last_name"] = self.request.user.last_name
+        initial["email"] = self.request.user.email
+        initial["bio"] = self.request.user.customerprofile.bio
+        initial["birth_date"] = self.request.user.customerprofile.birth_date
+        initial["location"] = self.request.user.customerprofile.location
+        return initial

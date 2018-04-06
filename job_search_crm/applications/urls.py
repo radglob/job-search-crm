@@ -22,11 +22,7 @@ urlpatterns = [
     path("accounts/login", views.login, name="login"),
     path("accounts/<int:user_id>/edit", views.edit_profile, name="edit_profile"),
     path("logout", views.logout, name="logout"),
-    path(
-        "applications",
-        login_required(views.ApplicationsView.as_view()),
-        name="applications",
-    ),
+    path("applications", views.applications, name="applications"),
     path(
         "applications/new",
         login_required(views.NewApplicationView.as_view()),

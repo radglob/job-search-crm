@@ -3,7 +3,15 @@
     <ul>
       <li><a href="{% url 'applications:home' %}">Job Search CRM</a></li>
       {% if request.user.is_authenticated %}
+<<<<<<< HEAD
       <li>Hi, <a href="{% url 'applications:view_profile' request.user.id %}">{{ request.user.first_name }}</a>!</li>
+=======
+      {% if request.user.first_name %}
+      <li>Hi, {{ request.user.first_name }}!</li>
+      {% else %}
+      <li>Hi, Stranger!</li>
+      {% endif %}
+>>>>>>> e1ae63fd043de17018e0a59faf3e3a5332316b2a
       <li><a href="{% url 'applications:applications' %}">Applications</a></li>
       <li><a href="{% url 'applications:logout' %}">Logout</a></li>
       {% else %}

@@ -4,12 +4,12 @@
       <li><a href="{% url 'applications:home' %}">Job Search CRM</a></li>
       {% if request.user.is_authenticated %}
       {% if request.user.first_name %}
-      <li>Hi, {{ request.user.first_name }}!</li>
+      <li>Hi, <a href="{% url 'applications:view_profile' request.user.id %}">{{ request.user.first_name }}</a>!</li>
       {% else %}
       <li>Hi, Stranger!</li>
       {% endif %}
       <li><a href="{% url 'applications:applications' %}">Applications</a></li>
-      <li><a href="{% url 'applications:logout' %}">Logout<a></li>
+      <li><a href="{% url 'applications:logout' %}">Logout</a></li>
       {% else %}
       {% if messages %}
       {% for message in messages %}

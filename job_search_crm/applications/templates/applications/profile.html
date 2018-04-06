@@ -1,0 +1,18 @@
+{% extends 'applications/base.html' %}
+
+{% block body %}
+{% if messages %}
+  {% for message in messages %}
+    {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+    <strong style="color:green">{{ message }}</strong>
+    {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+    <strong style="color:red">{{ message }}</strong>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+<form action="{% url 'applications:edit_profile' request.user.id %}" method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type="submit" value="Update profile" />
+</form>
+{% endblock %}

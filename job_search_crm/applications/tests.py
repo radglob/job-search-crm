@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
 
@@ -24,12 +24,12 @@ class IndexTests(TestCase):
     def test_index_with_user(self):
         self.client.login(username="joe", password="password")
         resp = self.client.get("/")
-        self.assertIn("Hi, Joe!", resp.content.decode())
+        self.assertIn("Joe", resp.content.decode())
 
     def test_index_with_user_no_profile(self):
         self.client.login(username="jane", password="password")
         resp = self.client.get("/")
-        self.assertRedirects(resp, "/create_profile")
+        self.assertRedirects(resp, "/accounts/register/profile")
 
 
 class LoginTests(TestCase):
@@ -42,21 +42,27 @@ class LoginTests(TestCase):
         CustomerProfile.objects.create(user=user)
 
     def test_login_with_correct_password_and_profile(self):
-        resp = self.client.post("/login", {"username": "joe", "password": "password"})
+        resp = self.client.post(
+            "/accounts/login", {"username": "joe", "password": "password"}
+        )
         self.assertEqual(resp.status_code, 302)
 
     def test_login_with_incorrect_password(self):
         resp = self.client.post(
-            "/login", {"username": "joe", "password": "badpassword"}, follow=True
+            "/accounts/login",
+            {"username": "joe", "password": "badpassword"},
+            follow=True,
         )
         self.assertIn("Username or password did not match.", resp.content.decode())
 
     def test_login_with_correct_password_and_no_profile(self):
-        resp = self.client.post("/login", {"username": "jane", "password": "password"})
+        resp = self.client.post(
+            "/accounts/login", {"username": "jane", "password": "password"}
+        )
         self.assertEqual(resp.status_code, 302)
 
 
-class CreateAccountTests(TestCase):
+class CreateAccountTests(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -65,7 +71,7 @@ class CreateAccountTests(TestCase):
 
     def test_create_account_success(self):
         resp = self.client.post(
-            "/create_account",
+            "/accounts/register",
             {
                 "username": "joe",
                 "email": "joe@email.com",
@@ -77,28 +83,31 @@ class CreateAccountTests(TestCase):
 
     def test_create_account_passwords_do_not_match(self):
         resp = self.client.post(
-            "/create_account",
+            "/accounts/register",
             {
                 "username": "joe",
                 "email": "joe@email.com",
                 "password": "password",
                 "confirm_password": "badpassword",
             },
+            follow=True,
         )
-        self.assertEqual(resp.status_code, 400)
         self.assertIn("Passwords do not match.", resp.content.decode())
 
     def test_create_account_integrity_error(self):
         resp = self.client.post(
-            "/create_account",
+            "/accounts/register",
             {
                 "username": "jane",
                 "email": "jane@email.com",
-                "password": "password",
-                "confirm_password": "password",
+                "password": "badpassword",
+                "confirm_password": "badpassword",
             },
+            follow=True,
         )
-        self.assertEqual(resp.status_code, 409)
+        self.assertIn(
+            "A user with this username already exists.", resp.content.decode()
+        )
 
 
 class CreateProfileTests(TestCase):
@@ -109,7 +118,7 @@ class CreateProfileTests(TestCase):
     def test_create_profile_success(self):
         self.client.login(username="joe", password="password")
         resp = self.client.post(
-            "/_create_profile",
+            "/accounts/profile/create",
             {
                 "first_name": "Joe",
                 "last_name": "Smith",
@@ -186,6 +195,75 @@ class RestrictedViewsTests(TestCase):
             Event.objects.get(pk=3)
 
 
+class EditProfileTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        user = User.objects.create_user(
+            "joe", "joe@email.com", "password", first_name="Joe", last_name="Smith"
+        )
+        CustomerProfile.objects.create(
+            user=user, bio="A simple man", location="Baltimore, MD"
+        )
+
+    def test_user_can_edit_profile(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {
+                "first_name": "John",
+                "last_name": "Doe",
+                "bio": "Trying to be anonymous.",
+            },
+        )
+        user = User.objects.get(pk=1)
+        self.assertEqual(user.first_name, "John")
+        self.assertEqual(user.last_name, "Doe")
+
+        profile = CustomerProfile.objects.get(pk=1)
+        self.assertEqual(profile.bio, "Trying to be anonymous.")
+
+    def test_user_can_change_password(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {"password": "better_password", "confirm_password": "better_password"},
+        )
+        user = User.objects.get(pk=1)
+        self.assertTrue(user.check_password("better_password"))
+
+    def test_password_will_not_be_changed_if_matches_old_password(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit", {"password": "password", "confirm_password": "password"}
+        )
+        user = User.objects.get(pk=1)
+        self.assertTrue(user.check_password("password"))
+
+    def test_password_and_confirm_password_must_match(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {"password": "better_password", "confirm_password": "better_pass"},
+        )
+        user = User.objects.get(pk=1)
+        self.assertTrue(user.check_password("password"))
+
+    def test_no_info_changes_if_password_change_fails(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {
+                "first_name": "John",
+                "password": "new_password",
+                "confirm_password": "new_pass",
+            },
+        )
+        user = User.objects.get(pk=1)
+        self.assertEquals(user.first_name, "Joe")
+
+
 class ApplicationsViewTests(TestCase):
 
     @classmethod
@@ -196,4 +274,4 @@ class ApplicationsViewTests(TestCase):
     def test_applications_cannot_be_seen_without_profile(self):
         self.client.login(username="joe", password="password")
         resp = self.client.get("/applications")
-        self.assertRedirects(resp, "/create_profile")
+        self.assertRedirects(resp, "/accounts/register/profile")

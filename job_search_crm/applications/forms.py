@@ -29,3 +29,10 @@ class CustomerProfileForm(forms.Form):
     location = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
+
+
+class SignupForm(forms.Form):
+    email = forms.EmailField()
+    username = forms.CharField()
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)

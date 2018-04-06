@@ -1,9 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth import (
     authenticate, login as auth_login, logout as auth_logout
 )
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -12,7 +14,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
-from .forms import CustomerProfileForm, NewApplicationForm, NewEventForm
+from .forms import (CustomerProfileForm, NewApplicationForm, NewEventForm, SignupForm)
 
 
 def index(request):
@@ -26,8 +28,9 @@ def index(request):
     return render(request, "applications/index.html", {"customer": customer})
 
 
-def signup(request):
-    return render(request, "applications/signup.html")
+class SignupView(FormView):
+    template_name = "applications/signup.html"
+    form_class = SignupForm
 
 
 def create_account(request):
@@ -37,26 +40,23 @@ def create_account(request):
     ]
     if password == confirm_password:
         try:
+            validate_password(password)
             u = User.objects.create_user(username, email=email, password=password)
             u.save()
             auth_login(request, u)
             return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
-        except IntegrityError as e:
-            return render(
-                request,
-                "applications/signup.html",
-                {"error_message": e.args[0]},
-                status=409,
-            )
+        except IntegrityError:
+            messages.error(request, "A user with this username already exists.")
+            return HttpResponseRedirect(reverse("applications:signup"))
+
+        except ValidationError:
+            messages.error(request, "This password is not valid.")
+            return HttpResponseRedirect(reverse("applications:signup"))
 
     else:
-        return render(
-            request,
-            "applications/signup.html",
-            {"error_message": "Passwords do not match."},
-            status=400,
-        )
+        messages.error(request, "Passwords do not match.")
+        return HttpResponseRedirect(reverse("applications:signup"))
 
 
 @login_required
@@ -237,6 +237,16 @@ def edit_profile(request, user_id):
         request.POST.get(k) for k in password_keys
     ]
     if all(password_values):
+        try:
+            validate_password(password)
+        except ValidationError:
+            messages.error(request, "This password isn't strong enough.")
+            return HttpResponseRedirect(
+                reverse(
+                    "applications:view_profile", kwargs={"user_id": request.user.id}
+                )
+            )
+
         if request.user.check_password(password):
             messages.error(request, "This is your current password.")
             return HttpResponseRedirect(

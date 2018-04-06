@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
 
@@ -62,7 +62,7 @@ class LoginTests(TestCase):
         self.assertEqual(resp.status_code, 302)
 
 
-class CreateAccountTests(TestCase):
+class CreateAccountTests(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -90,8 +90,8 @@ class CreateAccountTests(TestCase):
                 "password": "password",
                 "confirm_password": "badpassword",
             },
+            follow=True,
         )
-        self.assertEqual(resp.status_code, 400)
         self.assertIn("Passwords do not match.", resp.content.decode())
 
     def test_create_account_integrity_error(self):
@@ -100,11 +100,14 @@ class CreateAccountTests(TestCase):
             {
                 "username": "jane",
                 "email": "jane@email.com",
-                "password": "password",
-                "confirm_password": "password",
+                "password": "badpassword",
+                "confirm_password": "badpassword",
             },
+            follow=True,
         )
-        self.assertEqual(resp.status_code, 409)
+        self.assertIn(
+            "A user with this username already exists.", resp.content.decode()
+        )
 
 
 class CreateProfileTests(TestCase):

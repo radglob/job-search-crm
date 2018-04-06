@@ -29,7 +29,7 @@ class IndexTests(TestCase):
     def test_index_with_user_no_profile(self):
         self.client.login(username="jane", password="password")
         resp = self.client.get("/")
-        self.assertEqual(resp.status_code, 302)
+        self.assertRedirects(resp, "/create_profile")
 
 
 class LoginTests(TestCase):
@@ -184,3 +184,16 @@ class RestrictedViewsTests(TestCase):
         )
         with self.assertRaises(Event.DoesNotExist):
             Event.objects.get(pk=3)
+
+
+class ApplicationsViewTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        User.objects.create_user("joe", "joe@email.com", "password")
+
+    def test_applications_cannot_be_seen_without_profile(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/applications")
+        self.assertRedirects(resp, "/create_profile")

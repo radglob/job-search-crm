@@ -1,21 +1,12 @@
 <!doctype html>
 <head lang="en">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Job Search CRM{% endblock %}</title>
-  {% load bootstrap4 %}
-  {% bootstrap_css %}
-  {% bootstrap_javascript jquery='full' %}
-  {% bootstrap_messages %}
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
   {% include "applications/header.html" %}
-  <div class="container">
   {% block body %}{% endblock %}
   {% include "applications/footer.html" %}
-  </div>
 </body>
 
 

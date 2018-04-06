@@ -24,7 +24,7 @@ class IndexTests(TestCase):
     def test_index_with_user(self):
         self.client.login(username="joe", password="password")
         resp = self.client.get("/")
-        self.assertIn("Hi, Joe!", resp.content.decode())
+        self.assertIn("Joe", resp.content.decode())
 
     def test_index_with_user_no_profile(self):
         self.client.login(username="jane", password="password")
@@ -220,3 +220,42 @@ class EditProfileTests(TestCase):
 
         profile = CustomerProfile.objects.get(pk=1)
         self.assertEqual(profile.bio, "Trying to be anonymous.")
+
+    def test_user_can_change_password(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {"password": "better_password", "confirm_password": "better_password"},
+        )
+        user = User.objects.get(pk=1)
+        self.assertTrue(user.check_password("better_password"))
+
+    def test_password_will_not_be_changed_if_matches_old_password(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit", {"password": "password", "confirm_password": "password"}
+        )
+        user = User.objects.get(pk=1)
+        self.assertTrue(user.check_password("password"))
+
+    def test_password_and_confirm_password_must_match(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {"password": "better_password", "confirm_password": "better_pass"},
+        )
+        user = User.objects.get(pk=1)
+        self.assertTrue(user.check_password("password"))
+
+    def test_no_info_changes_if_password_change_fails(self):
+        self.client.login(username="joe", password="password")
+        self.client.post(
+            "/accounts/1/edit",
+            {
+                "first_name": "John",
+                "password": "new_password",
+                "confirm_password": "new_pass",
+            },
+        )
+        user = User.objects.get(pk=1)
+        self.assertEquals(user.first_name, "Joe")

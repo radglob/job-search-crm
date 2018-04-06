@@ -221,19 +221,44 @@ def delete_event(request, application_id, event_id):
 def edit_profile(request, user_id):
     user_keys = ("first_name", "last_name", "email")
     profile_keys = ("bio", "birth_date", "location")
+    password_keys = ("password", "confirm_password")
 
-    print(request.POST)
     for k in user_keys:
         value = request.POST.get(k)
         if value:
             setattr(request.user, k, value)
-    request.user.save()
 
     for k in profile_keys:
         value = request.POST.get(k)
         if value:
             setattr(request.user.customerprofile, k, value)
+
+    password_values = (password, confirm_password) = [
+        request.POST.get(k) for k in password_keys
+    ]
+    if all(password_values):
+        if request.user.check_password(password):
+            messages.error(request, "This is your current password.")
+            return HttpResponseRedirect(
+                reverse(
+                    "applications:view_profile", kwargs={"user_id": request.user.id}
+                )
+            )
+
+        elif password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return HttpResponseRedirect(
+                reverse(
+                    "applications:view_profile", kwargs={"user_id": request.user.id}
+                )
+            )
+
+        else:
+            request.user.set_password(password)
+
+    request.user.save()
     request.user.customerprofile.save()
+
     messages.success(request, "Profile updated successfully.")
     return HttpResponseRedirect(
         reverse("applications:view_profile", kwargs={"user_id": request.user.id})

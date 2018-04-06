@@ -27,3 +27,5 @@ class CustomerProfileForm(forms.Form):
     bio = forms.CharField(widget=forms.Textarea)
     birth_date = forms.DateField()
     location = forms.CharField()
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)

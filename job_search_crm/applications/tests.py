@@ -196,7 +196,6 @@ class RestrictedViewsTests(TestCase):
 
 
 class EditProfileTests(TestCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -265,12 +264,11 @@ class EditProfileTests(TestCase):
 
 
 class ApplicationsViewTests(TestCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         User.objects.create_user("joe", "joe@email.com", "password")
-
+        
     def test_applications_cannot_be_seen_without_profile(self):
         self.client.login(username="joe", password="password")
         resp = self.client.get("/applications")

@@ -5,6 +5,6 @@
 <form action="{% url 'applications:create_event' application_id %}" method="POST" class="form">
   {% csrf_token %}
   {% bootstrap_form form %}
-  <input type="submit" value="Submit new event" />
+  <input type="submit" value="Submit new event" class="btn btn-primary" />
 </form>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'applications/base.html' %}
+{% load bootstrap4 %}
 
 {% block body %}
 {% if messages %}
@@ -12,7 +13,7 @@
 {% endif %}
 <form action="{% url 'applications:edit_profile' request.user.id %}" method="POST">
   {% csrf_token %}
-  {{ form.as_p }}
+  {{ form.as_table }}
   <input type="submit" value="Update profile" />
 </form>
 {% endblock %}

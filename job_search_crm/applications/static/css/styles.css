@@ -5941,6 +5941,9 @@ footer {
   color: #bac1c8;
   font-size: 15px;
   padding: 0;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 }
 footer a {
   color: #9aa4af;

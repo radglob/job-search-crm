@@ -1,9 +1,10 @@
 {% extends 'applications/base.html' %}
+{% load bootstrap4 %}
 
 {% block body %}
 <form action="{% url 'applications:create_new_application' %}" method="POST">
   {% csrf_token %}
-  {{ form.as_p }}
-  <input type="submit" value="Create new application" />
+  {% bootstrap_form form %}
+  <input type="submit" value="Create new application" class="btn btn-primary" />
 </form>
 {% endblock %}

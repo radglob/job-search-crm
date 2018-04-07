@@ -1,16 +1,13 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 django = "*"
-
+django-bootstrap4 = "==0.0.6"
+django-fa = "==1.0.0"
 
 [dev-packages]
-
-black = "*"
-coverage = "*"
+black = "==18.4a0"
+coverage = "==4.5.1"

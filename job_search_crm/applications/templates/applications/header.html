@@ -1,35 +1,41 @@
 <header>
-  <nav>
-    <ul>
-      <li><a href="{% url 'applications:home' %}">Job Search CRM</a></li>
-      {% if request.user.is_authenticated %}
-      {% if request.user.first_name %}
-      <li>Hi, <a href="{% url 'applications:view_profile' request.user.id %}">{{ request.user.first_name }}</a>!</li>
-      {% else %}
-      <li>Hi, Stranger!</li>
-      {% endif %}
-      <li><a href="{% url 'applications:applications' %}">Applications</a></li>
-      <li><a href="{% url 'applications:logout' %}">Logout</a></li>
-      {% else %}
-      {% if messages %}
-      {% for message in messages %}
-        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-          <strong>{{ message }}</strong>
-        {% endif %}
-      {% endfor %}
-      {% endif %}
-      {% if request.GET.next %}
-      <form action="{% url 'applications:login' %}?next={{ request.GET.next }}" method="POST">
-      {% else %}
-      <form action="{% url 'applications:login' %}" method="POST">
-        {% endif %}
-          {% csrf_token %}
-          <input type="text" name="username" placeholder="Username" />
-          <input type="password" name="password" placeholder="Password" />
-          <input type="submit" value="Login" />
-        </form>
-        <a href="{% url 'applications:signup' %}">Sign up</a>
-        {% endif %}
-    </ul>
-  </nav>
+    <nav class="navbar navbar-fixed-top navbar-inverse navbar-expand-lg" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a href="{% url 'applications:home' %}" class="navbar-brand">Job Search CRM</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon "></span>
+            </div>
+            <div class="navbar-collapse collapse justify-content-end" id="navbarText">
+              <ul class="nav navbar-nav">
+                {% if request.user.is_authenticated %}
+                <li><a href="{% url 'applications:applications' %}">Applications</a></li>
+                <li><a href="{% url 'applications:view_profile' request.user.id %}">Signed in as {{ request.user.first_name }}<a></li>
+                <li><a href="{% url 'applications:logout' %}" class="btn-embossed btn-primary">Logout<a></li>
+               </ul>
+            </div>
+            <div>
+               {% else %}
+               {% if messages %}
+               {% for message in messages %}
+               {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+               <strong>{{ message }}</strong>
+               {% endif %}
+               {% endfor %}
+               {% endif %}
+               {% if request.GET.next %}
+            <div class="form-group">
+               <form class="navbar-form form-inline" action="{% url 'applications:login' %}?next={{ request.GET.next }}" method="POST">
+               {% else %}
+               <form class="navbar-form form-inline" action="{% url 'applications:login' %}" method="POST" >
+               {% endif %}
+               {% csrf_token %}
+                 <input type="text" name="username" placeholder="Username" class="form-control"/>
+                 <input type="password" name="password" placeholder="Password" class="form-control"/>
+                 <input type="submit" class="btn btn-embossed btn-primary" value="Login" />
+               </form>
+            </div>
+               <a href="{% url 'applications:signup' %}" class="btn btn-embossed btn-primary">Sign up</a> {% endif %}
+        </div>
+    </nav>
 </header>

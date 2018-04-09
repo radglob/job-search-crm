@@ -10,22 +10,27 @@ from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
 from .forms import (CustomerProfileForm, NewApplicationForm, NewEventForm, SignupForm)
 
 
-def index(request):
-    customer = None
-    if not request.user.is_anonymous:
-        try:
-            customer = CustomerProfile.objects.get(user=request.user)
-        except CustomerProfile.DoesNotExist:
-            return HttpResponseRedirect(reverse("applications:get_profile_information"))
+class IndexView(TemplateView):
+    template_name = "applications/index.html"
 
-    return render(request, "applications/index.html", {"customer": customer})
+    def get(self, request):
+        customer = None
+        if not request.user.is_anonymous:
+            try:
+                customer = CustomerProfile.objects.get(user=request.user)
+            except CustomerProfile.DoesNotExist:
+                return HttpResponseRedirect(reverse("applications:get_profile_information"))
+        return render(request, "applications/index.html", {"customer": customer})
+
+    def post(self, request):
+        return HttpResponse("POST not allowed on index page.", status=405)
 
 
 class SignupView(FormView):

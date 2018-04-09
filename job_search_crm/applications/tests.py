@@ -17,19 +17,23 @@ class IndexTests(TestCase):
         User.objects.create_user("jane", "jane@email.com", "password")
         CustomerProfile.objects.create(user=user)
 
-    def test_index_with_no_user(self):
+    def test_index_get_with_no_user(self):
         resp = self.client.get("/")
         self.assertIn("Login", resp.content.decode())
 
-    def test_index_with_user(self):
+    def test_index_get_with_user(self):
         self.client.login(username="joe", password="password")
         resp = self.client.get("/")
         self.assertIn("Joe", resp.content.decode())
 
-    def test_index_with_user_no_profile(self):
+    def test_index_get_with_user_no_profile(self):
         self.client.login(username="jane", password="password")
         resp = self.client.get("/")
         self.assertRedirects(resp, "/accounts/register/profile")
+
+    def test_index_post(self):
+        resp = self.client.post("/", {"test": "test"})
+        self.assertEqual(resp.status_code, 405)
 
 
 class LoginTests(TestCase):

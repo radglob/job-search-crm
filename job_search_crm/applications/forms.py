@@ -41,6 +41,7 @@ class CustomerProfileForm(forms.Form):
         else:
             return False
 
+
 class CreateAccountForm(forms.Form):
     email = forms.EmailField()
     username = forms.CharField()

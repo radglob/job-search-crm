@@ -287,6 +287,7 @@ class ProfileView(FormView):
             if request.user.check_password(password):
                 messages.error(request, "This is your current password.")
                 return render(request, self.template_name, {"form": form})
+
             elif all(password_values):
                 try:
                     validate_password(password)
@@ -298,6 +299,7 @@ class ProfileView(FormView):
             request.user.customerprofile.save()
             messages.success(request, "Profile updated successfully.")
             return render(request, self.template_name, {"form": form})
-        else: # check form.errors for mismatched_passwords
+
+        else:  # check form.errors for mismatched_passwords
             messages.error(request, "Passwords do not match.")
         return render(request, self.template_name, {"form": form})

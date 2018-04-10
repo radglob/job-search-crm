@@ -254,7 +254,8 @@ class ProfileViewTests(TestCase):
     def test_password_will_not_be_changed_if_matches_old_password(self):
         self.client.login(username="joe", password="password")
         self.client.post(
-            "/accounts/profile", {"password": "password", "confirm_password": "password"}
+            "/accounts/profile",
+            {"password": "password", "confirm_password": "password"},
         )
         user = User.objects.get(pk=1)
         self.assertTrue(user.check_password("password"))

@@ -36,6 +36,54 @@ class IndexTests(TestCase):
         self.assertEqual(resp.status_code, 405)
 
 
+class CreateAccountTests(TransactionTestCase):
+
+    def test_create_account_get(self):
+        resp = self.client.get("/accounts/register")
+        self.assertIn("Register Account", resp.content.decode())
+
+    def test_create_account_post_success(self):
+        resp = self.client.post(
+            "/accounts/register",
+            {
+                "username": "joe",
+                "email": "joe@email.com",
+                "password": "goodpassword",
+                "confirm_password": "goodpassword",
+            },
+        )
+        self.assertRedirects(resp, "/accounts/register/profile")
+
+    def test_create_account_passwords_do_not_match(self):
+        resp = self.client.post(
+            "/accounts/register",
+            {
+                "username": "joe",
+                "email": "joe@email.com",
+                "password": "password",
+                "confirm_password": "badpassword",
+            },
+        )
+        self.assertIn("Passwords do not match.", resp.content.decode())
+        self.assertEqual(resp.status_code, 400)
+
+    def test_create_account_integrity_error(self):
+        User.objects.create_user("jane", "jane@email.com", "password")
+        resp = self.client.post(
+            "/accounts/register",
+            {
+                "username": "jane",
+                "email": "jane@email.com",
+                "password": "badpassword",
+                "confirm_password": "badpassword",
+            },
+        )
+        self.assertIn(
+            "A user with this username already exists.", resp.content.decode()
+        )
+        self.assertEqual(resp.status_code, 400)
+
+
 class LoginTests(TestCase):
 
     @classmethod
@@ -66,52 +114,6 @@ class LoginTests(TestCase):
         self.assertEqual(resp.status_code, 302)
 
 
-class CreateAccountTests(TransactionTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        User.objects.create_user("jane", "jane@email.com", "password")
-
-    def test_create_account_success(self):
-        resp = self.client.post(
-            "/accounts/register",
-            {
-                "username": "joe",
-                "email": "joe@email.com",
-                "password": "password",
-                "confirm_password": "password",
-            },
-        )
-        self.assertEqual(resp.status_code, 302)
-
-    def test_create_account_passwords_do_not_match(self):
-        resp = self.client.post(
-            "/accounts/register",
-            {
-                "username": "joe",
-                "email": "joe@email.com",
-                "password": "password",
-                "confirm_password": "badpassword",
-            },
-            follow=True,
-        )
-        self.assertIn("Passwords do not match.", resp.content.decode())
-
-    def test_create_account_integrity_error(self):
-        resp = self.client.post(
-            "/accounts/register",
-            {
-                "username": "jane",
-                "email": "jane@email.com",
-                "password": "badpassword",
-                "confirm_password": "badpassword",
-            },
-            follow=True,
-        )
-        self.assertIn(
-            "A user with this username already exists.", resp.content.decode()
-        )
 
 
 class CreateProfileTests(TestCase):

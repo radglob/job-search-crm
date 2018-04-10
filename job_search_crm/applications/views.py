@@ -14,7 +14,7 @@ from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
-from .forms import (CustomerProfileForm, NewApplicationForm, NewEventForm, SignupForm)
+from .forms import (CreateAccountForm, CustomerProfileForm, NewApplicationForm, NewEventForm)
 
 
 class IndexView(TemplateView):
@@ -30,38 +30,42 @@ class IndexView(TemplateView):
         return render(request, "applications/index.html", {"customer": customer})
 
     def post(self, request):
-        return HttpResponse("POST not allowed on index page.", status=405)
+        return render(request, "applications/405.html", status=405)
 
 
-class SignupView(FormView):
+class CreateAccountView(FormView):
     template_name = "applications/signup.html"
-    form_class = SignupForm
+    form_class = CreateAccountForm
 
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {"form": form})
 
-def create_account(request):
-    username, email, password, confirm_password = [
-        request.POST.get(k)
-        for k in ("username", "email", "password", "confirm_password")
-    ]
-    if password == confirm_password:
-        try:
-            validate_password(password)
-            u = User.objects.create_user(username, email=email, password=password)
-            u.save()
-            auth_login(request, u)
-            return HttpResponseRedirect(reverse("applications:get_profile_information"))
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            username, email, password = [
+                form.cleaned_data.get(k)
+                for k in ("username", "email", "password")
+            ]
+            try:
+                validate_password(password)
+                u = User.objects.create_user(username, email, password)
+                u.save()
+                auth_login(request, u)
+                return HttpResponseRedirect(reverse("applications:get_profile_information"))
 
-        except IntegrityError:
-            messages.error(request, "A user with this username already exists.")
-            return HttpResponseRedirect(reverse("applications:signup"))
+            except IntegrityError:
+                messages.error(request, "A user with this username already exists.")
+                return render(request, self.template_name, {"form": form}, status=400)
 
-        except ValidationError:
-            messages.error(request, "This password is not valid.")
-            return HttpResponseRedirect(reverse("applications:signup"))
+            except ValidationError:
+                messages.error(request, "This password is not valid.") 
+                return render(request, self.template_name, {"form": form}, status=400)
 
-    else:
-        messages.error(request, "Passwords do not match.")
-        return HttpResponseRedirect(reverse("applications:signup"))
+        else:
+            messages.error(request, "Passwords do not match.")
+            return render(request, self.template_name, {"form": form}, status=400)
 
 
 @login_required

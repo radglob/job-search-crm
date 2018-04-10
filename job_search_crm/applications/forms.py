@@ -31,8 +31,18 @@ class CustomerProfileForm(forms.Form):
     confirm_password = forms.CharField(widget=forms.PasswordInput)
 
 
-class SignupForm(forms.Form):
+class CreateAccountForm(forms.Form):
     email = forms.EmailField()
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
+
+    def is_valid(self):
+        valid = super(CreateAccountForm, self).is_valid()
+        if not valid:
+            return valid
+
+        if self.cleaned_data["password"] == self.cleaned_data["confirm_password"]:
+            return True
+        else:
+            return False

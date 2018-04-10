@@ -243,63 +243,6 @@ def delete_event(request, application_id, event_id):
     )
 
 
-def edit_profile(request, user_id):
-    user_keys = ("first_name", "last_name", "email")
-    profile_keys = ("bio", "birth_date", "location")
-    password_keys = ("password", "confirm_password")
-
-    for k in user_keys:
-        value = request.POST.get(k)
-        if value:
-            setattr(request.user, k, value)
-
-    for k in profile_keys:
-        value = request.POST.get(k)
-        if value:
-            setattr(request.user.customerprofile, k, value)
-
-    password_values = (password, confirm_password) = [
-        request.POST.get(k) for k in password_keys
-    ]
-    if all(password_values):
-        try:
-            validate_password(password)
-        except ValidationError:
-            messages.error(request, "This password isn't strong enough.")
-            return HttpResponseRedirect(
-                reverse(
-                    "applications:view_profile", kwargs={"user_id": request.user.id}
-                )
-            )
-
-        if request.user.check_password(password):
-            messages.error(request, "This is your current password.")
-            return HttpResponseRedirect(
-                reverse(
-                    "applications:view_profile", kwargs={"user_id": request.user.id}
-                )
-            )
-
-        elif password != confirm_password:
-            messages.error(request, "Passwords do not match.")
-            return HttpResponseRedirect(
-                reverse(
-                    "applications:view_profile", kwargs={"user_id": request.user.id}
-                )
-            )
-
-        else:
-            request.user.set_password(password)
-
-    request.user.save()
-    request.user.customerprofile.save()
-
-    messages.success(request, "Profile updated successfully.")
-    return HttpResponseRedirect(
-        reverse("applications:view_profile", kwargs={"user_id": request.user.id})
-    )
-
-
 class ProfileView(FormView):
     template_name = "applications/profile.html"
     form_class = CustomerProfileForm
@@ -314,3 +257,47 @@ class ProfileView(FormView):
         initial["birth_date"] = self.request.user.customerprofile.birth_date
         initial["location"] = self.request.user.customerprofile.location
         return initial
+
+    def get(self, request):
+        form = self.form_class(initial=self.get_initial())
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            # Update keys for User model.
+            user_keys = ("first_name", "last_name", "email")
+            for k in user_keys:
+                value = form.cleaned_data.get(k)
+                if value:
+                    setattr(request.user, k, value)
+
+            # Update keys for CustomerProfile model.
+            profile_keys = ("bio", "birth_date", "location")
+            for k in profile_keys:
+                value = form.cleaned_data.get(k)
+                if value:
+                    setattr(request.user.customerprofile, k, value)
+
+            # Attempt to update password.
+            password_keys = ("password", "confirm_password")
+            password_values = (password, confirm_password) = [
+                form.cleaned_data.get(k) for k in password_keys
+            ]
+            if request.user.check_password(password):
+                messages.error(request, "This is your current password.")
+                return render(request, self.template_name, {"form": form})
+            elif all(password_values):
+                try:
+                    validate_password(password)
+                    request.user.set_password(password)
+                except ValidationError:
+                    messages.error(request, "This password isn't strong enough.")
+
+            request.user.save()
+            request.user.customerprofile.save()
+            messages.success(request, "Profile updated successfully.")
+            return render(request, self.template_name, {"form": form})
+        else: # check form.errors for mismatched_passwords
+            messages.error(request, "Passwords do not match.")
+        return render(request, self.template_name, {"form": form})

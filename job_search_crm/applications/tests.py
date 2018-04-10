@@ -208,7 +208,7 @@ class RestrictedViewsTests(TestCase):
             Event.objects.get(pk=3)
 
 
-class EditProfileTests(TestCase):
+class ProfileViewTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -220,10 +220,15 @@ class EditProfileTests(TestCase):
             user=user, bio="A simple man", location="Baltimore, MD"
         )
 
+    def test_get_profile_view(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/accounts/profile")
+        self.assertIn("Profile", resp.content.decode())
+
     def test_user_can_edit_profile(self):
         self.client.login(username="joe", password="password")
         self.client.post(
-            "/accounts/1/edit",
+            "/accounts/profile",
             {
                 "first_name": "John",
                 "last_name": "Doe",
@@ -240,7 +245,7 @@ class EditProfileTests(TestCase):
     def test_user_can_change_password(self):
         self.client.login(username="joe", password="password")
         self.client.post(
-            "/accounts/1/edit",
+            "/accounts/profile",
             {"password": "better_password", "confirm_password": "better_password"},
         )
         user = User.objects.get(pk=1)
@@ -249,7 +254,7 @@ class EditProfileTests(TestCase):
     def test_password_will_not_be_changed_if_matches_old_password(self):
         self.client.login(username="joe", password="password")
         self.client.post(
-            "/accounts/1/edit", {"password": "password", "confirm_password": "password"}
+            "/accounts/profile", {"password": "password", "confirm_password": "password"}
         )
         user = User.objects.get(pk=1)
         self.assertTrue(user.check_password("password"))
@@ -257,7 +262,7 @@ class EditProfileTests(TestCase):
     def test_password_and_confirm_password_must_match(self):
         self.client.login(username="joe", password="password")
         self.client.post(
-            "/accounts/1/edit",
+            "/accounts/profile",
             {"password": "better_password", "confirm_password": "better_pass"},
         )
         user = User.objects.get(pk=1)
@@ -266,7 +271,7 @@ class EditProfileTests(TestCase):
     def test_no_info_changes_if_password_change_fails(self):
         self.client.login(username="joe", password="password")
         self.client.post(
-            "/accounts/1/edit",
+            "/accounts/profile",
             {
                 "first_name": "John",
                 "password": "new_password",

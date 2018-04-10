@@ -13,12 +13,11 @@ urlpatterns = [
         name="create_profile",
     ),
     path(
-        "accounts/<int:user_id>/profile",
-        views.ProfileView.as_view(),
+        "accounts/profile",
+        login_required(views.ProfileView.as_view()),
         name="view_profile",
     ),
     path("accounts/login", views.login, name="login"),
-    path("accounts/<int:user_id>/edit", views.edit_profile, name="edit_profile"),
     path("logout", views.logout, name="logout"),
     path("applications", views.applications, name="applications"),
     path(

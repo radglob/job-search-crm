@@ -20,16 +20,26 @@ class NewEventForm(forms.Form):
 
 
 class CustomerProfileForm(forms.Form):
-    username = forms.CharField()
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email = forms.EmailField()
-    bio = forms.CharField(widget=forms.Textarea)
-    birth_date = forms.DateField()
-    location = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
-    confirm_password = forms.CharField(widget=forms.PasswordInput)
+    username = forms.CharField(required=False)
+    first_name = forms.CharField(required=False)
+    last_name = forms.CharField(required=False)
+    email = forms.EmailField(required=False)
+    bio = forms.CharField(widget=forms.Textarea, required=False)
+    birth_date = forms.DateField(required=False)
+    location = forms.CharField(required=False)
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
+    confirm_password = forms.CharField(widget=forms.PasswordInput, required=False)
 
+    def is_valid(self):
+        valid = super(CustomerProfileForm, self).is_valid()
+        if not valid:
+            return valid
+
+        if self.cleaned_data["password"] == self.cleaned_data["confirm_password"]:
+            return True
+
+        else:
+            return False
 
 class CreateAccountForm(forms.Form):
     email = forms.EmailField()

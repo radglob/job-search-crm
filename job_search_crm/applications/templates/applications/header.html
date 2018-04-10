@@ -4,7 +4,7 @@
       <li><a href="{% url 'applications:home' %}">Job Search CRM</a></li>
       {% if request.user.is_authenticated %}
       {% if request.user.first_name %}
-      <li>Hi, <a href="{% url 'applications:view_profile' request.user.id %}">{{ request.user.first_name }}</a>!</li>
+      <li>Hi, <a href="{% url 'applications:view_profile' %}">{{ request.user.first_name }}</a>!</li>
       {% else %}
       <li>Hi, Stranger!</li>
       {% endif %}

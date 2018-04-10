@@ -14,7 +14,13 @@ from django.views.generic import ListView, TemplateView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
-from .forms import (CreateAccountForm, CustomerProfileForm, NewApplicationForm, NewEventForm)
+from .forms import (
+    CreateAccountForm,
+    CreateProfileForm,
+    CustomerProfileForm,
+    NewApplicationForm,
+    NewEventForm,
+)
 
 
 class IndexView(TemplateView):
@@ -26,7 +32,8 @@ class IndexView(TemplateView):
             try:
                 customer = CustomerProfile.objects.get(user=request.user)
             except CustomerProfile.DoesNotExist:
-                return HttpResponseRedirect(reverse("applications:get_profile_information"))
+                return HttpResponseRedirect(reverse("applications:create_profile"))
+
         return render(request, "applications/index.html", {"customer": customer})
 
     def post(self, request):
@@ -45,22 +52,21 @@ class CreateAccountView(FormView):
         form = self.form_class(request.POST)
         if form.is_valid():
             username, email, password = [
-                form.cleaned_data.get(k)
-                for k in ("username", "email", "password")
+                form.cleaned_data.get(k) for k in ("username", "email", "password")
             ]
             try:
                 validate_password(password)
                 u = User.objects.create_user(username, email, password)
                 u.save()
                 auth_login(request, u)
-                return HttpResponseRedirect(reverse("applications:get_profile_information"))
+                return HttpResponseRedirect(reverse("applications:create_profile"))
 
             except IntegrityError:
                 messages.error(request, "A user with this username already exists.")
                 return render(request, self.template_name, {"form": form}, status=400)
 
             except ValidationError:
-                messages.error(request, "This password is not valid.") 
+                messages.error(request, "This password is not valid.")
                 return render(request, self.template_name, {"form": form}, status=400)
 
         else:
@@ -68,25 +74,29 @@ class CreateAccountView(FormView):
             return render(request, self.template_name, {"form": form}, status=400)
 
 
-@login_required
-def get_profile_information(request):
-    return render(request, "applications/create_profile.html")
+class CreateProfileView(FormView):
+    template_name = "applications/create_profile.html"
+    form_class = CreateProfileForm
 
+    def get(self, request):
+        form = self.form_class()
+        return render(request, "applications/create_profile.html", {"form": form})
 
-@login_required
-def create_profile(request):
-    first_name, last_name, bio, location, birth_date = [
-        request.POST.get(k)
-        for k in ("first_name", "last_name", "bio", "location", "birth_date")
-    ]
-    request.user.first_name = first_name
-    request.user.last_name = last_name
-    request.user.save()
-    customer_profile = CustomerProfile.objects.create(
-        user=request.user, bio=bio, location=location, birth_date=birth_date
-    )
-    customer_profile.save()
-    return HttpResponseRedirect(reverse("applications:applications"))
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            first_name, last_name, bio, location, birth_date = [
+                form.cleaned_data.get(k)
+                for k in ("first_name", "last_name", "bio", "location", "birth_date")
+            ]
+            request.user.first_name = first_name
+            request.user.last_name = last_name
+            request.user.save()
+            customer_profile = CustomerProfile.objects.create(
+                user=request.user, bio=bio, location=location, birth_date=birth_date
+            )
+            customer_profile.save()
+            return HttpResponseRedirect(reverse("applications:applications"))
 
 
 def login(request):
@@ -102,7 +112,7 @@ def login(request):
         try:
             profile = CustomerProfile.objects.get(user=user)
         except CustomerProfile.DoesNotExist:
-            return HttpResponseRedirect(reverse("applications:get_profile_information"))
+            return HttpResponseRedirect(reverse("applications:create_profile"))
 
     if request.GET.get("next"):
         return HttpResponseRedirect(request.GET["next"])
@@ -131,7 +141,7 @@ def applications(request):
         )
 
     except CustomerProfile.DoesNotExist:
-        return HttpResponseRedirect(reverse("applications:get_profile_information"))
+        return HttpResponseRedirect(reverse("applications:create_profile"))
 
 
 class NewApplicationView(FormView):

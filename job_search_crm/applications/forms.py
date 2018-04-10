@@ -44,5 +44,14 @@ class CreateAccountForm(forms.Form):
 
         if self.cleaned_data["password"] == self.cleaned_data["confirm_password"]:
             return True
+
         else:
             return False
+
+
+class CreateProfileForm(forms.Form):
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    bio = forms.CharField(widget=forms.Textarea)
+    location = forms.CharField()
+    birth_date = forms.DateField()

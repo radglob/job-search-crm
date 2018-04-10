@@ -84,6 +84,37 @@ class CreateAccountTests(TransactionTestCase):
         self.assertEqual(resp.status_code, 400)
 
 
+class CreateProfileTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user("joe", "joe@email.com", "password")
+
+    def test_get_create_profile_view(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/accounts/register/profile")
+        self.assertIn("Create customer profile", resp.content.decode())
+
+    def test_get_create_profile_view_requires_login(self):
+        resp = self.client.get("/accounts/register/profile")
+        self.assertRedirects(resp, "/?next=/accounts/register/profile")
+
+    def test_post_create_profile_success(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.post(
+            "/accounts/register/profile",
+            {
+                "first_name": "Joe",
+                "last_name": "Smith",
+                "bio": "A little about Joe...",
+                "location": "New York",
+                "birth_date": datetime.today().strftime("%Y-%m-%d"),
+            },
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Joe")
+        self.assertRedirects(resp, "/applications")
+
+
 class LoginTests(TestCase):
 
     @classmethod
@@ -112,30 +143,6 @@ class LoginTests(TestCase):
             "/accounts/login", {"username": "jane", "password": "password"}
         )
         self.assertEqual(resp.status_code, 302)
-
-
-
-
-class CreateProfileTests(TestCase):
-
-    def setUp(self):
-        self.user = User.objects.create_user("joe", "joe@email.com", "password")
-
-    def test_create_profile_success(self):
-        self.client.login(username="joe", password="password")
-        resp = self.client.post(
-            "/accounts/profile/create",
-            {
-                "first_name": "Joe",
-                "last_name": "Smith",
-                "bio": "A little about Joe...",
-                "location": "New York",
-                "birth_date": datetime.today().strftime("%Y-%m-%d"),
-            },
-        )
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.first_name, "Joe")
-        self.assertRedirects(resp, "/applications")
 
 
 class RestrictedViewsTests(TestCase):

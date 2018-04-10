@@ -9,10 +9,9 @@ urlpatterns = [
     path("accounts/register", views.CreateAccountView.as_view(), name="create_account"),
     path(
         "accounts/register/profile",
-        views.get_profile_information,
-        name="get_profile_information",
+        login_required(views.CreateProfileView.as_view()),
+        name="create_profile",
     ),
-    path("accounts/profile/create", views.create_profile, name="create_profile"),
     path(
         "accounts/<int:user_id>/profile",
         views.ProfileView.as_view(),

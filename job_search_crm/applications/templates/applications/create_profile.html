@@ -3,16 +3,7 @@
 <h1>Create customer profile</h1>
 <form action="{% url 'applications:create_profile' %}" method="POST">
   {% csrf_token %}
-  <label for="first_name">First Name</label>
-  <input type="text" name="first_name" required />
-  <label for="last_name">Last Name</label>
-  <input type="text" name="last_name" required />
-  <label for="bio">Tell us a little about you.</label>
-  <input type="textarea" name="bio" required />
-  <label for="location">Location</label>
-  <input type="text" name="location" required />
-  <label for="birth_date">Birth date</label>
-  <input type="date" name="birth_date" required />
+  {{ form.as_p }}
   <input type="submit" value="Create profile" />
 </form>
 {% endblock %}

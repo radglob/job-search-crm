@@ -288,9 +288,136 @@ class ApplicationsViewTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        User.objects.create_user("joe", "joe@email.com", "password")
+        User.objects.create_user("jane", "jane@email.com", "password")
+        user = User.objects.create_user("joe", "joe@email.com", "password")
+        CustomerProfile.objects.create(
+            user=user, bio="A simple man", location="Baltimore, MD"
+        )
 
-    def test_applications_cannot_be_seen_without_profile(self):
-        self.client.login(username="joe", password="password")
+    def test_get_applications_cannot_be_seen_without_profile(self):
+        self.client.login(username="jane", password="password")
         resp = self.client.get("/applications")
         self.assertRedirects(resp, "/accounts/register/profile")
+
+    def test_get_applications_can_visible_with_profile(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/applications")
+        self.assertIn("You have no open applications right now.", resp.content.decode())
+
+    def test_get_applications_with_open_applications(self):
+        user = User.objects.get(username="joe")
+        profile = CustomerProfile.objects.get(user=user)
+        company = Company.objects.create(
+            company_name="Company, Inc.",
+            location="Baltimore, MD",
+            sub_industry="Widgets",
+        )
+        position = Position.objects.create(
+            company=company,
+            position_name="Software Engineer",
+            is_remote=False,
+            min_salary=50000,
+            max_salary=60000,
+            tech_stack="Python",
+        )
+        Application.objects.create(applicant=profile, position=position)
+
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/applications")
+        self.assertIn(
+            "Application to Software Engineer at Company, Inc.: Open",
+            resp.content.decode(),
+        )
+
+    def test_get_applications_with_closed_applications(self):
+        user = User.objects.get(username="joe")
+        profile = CustomerProfile.objects.get(user=user)
+        company = Company.objects.create(
+            company_name="Company, Inc.",
+            location="Baltimore, MD",
+            sub_industry="Widgets",
+        )
+        position = Position.objects.create(
+            company=company,
+            position_name="Software Engineer",
+            is_remote=False,
+            min_salary=50000,
+            max_salary=60000,
+            tech_stack="Python",
+        )
+        Application.objects.create(
+            applicant=profile, position=position, status="Declined by employer"
+        )
+
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/applications")
+        self.assertIn("You have no open applications right now.", resp.content.decode())
+
+
+class NewApplicationViewTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        user = User.objects.create_user("joe", "joe@email.com", "password")
+        CustomerProfile.objects.create(
+            user=user, bio="Something interesting", location="Baltimore, MD"
+        )
+        company = Company.objects.create(
+            company_name="Company, Inc.",
+            location="Baltimore, MD",
+            sub_industry="Widgets",
+        )
+        position = Position.objects.create(
+            company=company,
+            position_name="Software Engineer",
+            is_remote=False,
+            min_salary=50000,
+            max_salary=60000,
+            tech_stack="Python",
+        )
+
+    def test_get_new_applications_view_requires_login(self):
+        resp = self.client.get("/applications/new")
+        self.assertRedirects(resp, "/?next=/applications/new")
+
+    def test_get_new_applications_view_returns_form(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/applications/new")
+        self.assertIn("New Application", resp.content.decode())
+
+    def test_post_new_applications_view_creates_application(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.post(
+            "/applications/new",
+            {
+                "company_name": "Company, Inc.",
+                "company_location": "Baltimore, MD",
+                "company_sub_industry": "Widgets",
+                "position_name": "Software Engineer",
+                "is_remote": False,
+                "min_salary": 50000,
+                "max_salary": 60000,
+                "tech_stack": "Python",
+            },
+        )
+        applications = Application.objects.all()
+        self.assertEquals(len(applications), 1)
+
+    def test_post_new_applications_view_min_salary_must_be_less_than_max(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.post(
+            "/applications/new",
+            {
+                "company_name": "Company, Inc.",
+                "company_location": "Baltimore, MD",
+                "company_sub_industry": "Widgets",
+                "position_name": "Software Engineer",
+                "is_remote": False,
+                "min_salary": 70000,
+                "max_salary": 60000,
+                "tech_stack": "Python",
+            },
+        )
+        applications = Application.objects.all()
+        self.assertEquals(len(applications), 0)

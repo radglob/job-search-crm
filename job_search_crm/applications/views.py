@@ -133,7 +133,9 @@ def logout(request):
 def applications(request):
     try:
         customer = CustomerProfile.objects.get(user=request.user)
-        applications = Application.objects.filter(applicant=customer)
+        applications = Application.objects.filter(applicant=customer).filter(
+            status__in=("Open", "Offer extended")
+        )
         return render(
             request,
             "applications/applications.html",
@@ -149,39 +151,45 @@ class NewApplicationView(FormView):
     form_class = NewApplicationForm
     success_url = "/applications"
 
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {"form": form})
 
-@login_required
-def create_new_application(request):
-    form = NewApplicationForm(request.POST)
-    if form.is_valid():
-        data = form.cleaned_data
-    company, __ = Company.objects.get_or_create(
-        company_name=data["company_name"],
-        defaults={
-            "location": data["company_location"],
-            "sub_industry": data["company_sub_industry"],
-        },
-    )
-    position, __ = Position.objects.get_or_create(
-        company=company,
-        position_name=data["position_name"],
-        defaults={
-            "is_remote": data.get("is_remote", False),
-            "min_salary": data["min_salary"],
-            "max_salary": data["max_salary"],
-            "tech_stack": data["tech_stack"],
-        },
-    )
-    application, created = Application.objects.get_or_create(
-        applicant=request.user.customerprofile, position=position
-    )
-    if not created:
-        messages.error(request, "This application already exists.")
-        return HttpResponseRedirect(reverse("applications:applications"))
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            company, __ = Company.objects.get_or_create(
+                company_name=data["company_name"],
+                defaults={
+                    "location": data["company_location"],
+                    "sub_industry": data["company_sub_industry"],
+                },
+            )
+            position, __ = Position.objects.get_or_create(
+                company=company,
+                position_name=data["position_name"],
+                defaults={
+                    "is_remote": data.get("is_remote", False),
+                    "min_salary": data["min_salary"],
+                    "max_salary": data["max_salary"],
+                    "tech_stack": data["tech_stack"],
+                },
+            )
+            application, created = Application.objects.get_or_create(
+                applicant=request.user.customerprofile, position=position
+            )
+            if not created:
+                messages.error(request, "This application already exists.")
+                return render(request, self.template_name, {"form": form})
 
-    else:
-        messages.success(request, "New application created!")
-        return HttpResponseRedirect(reverse("applications:applications"))
+            else:
+                messages.success(request, "New application created!")
+                return HttpResponseRedirect(self.success_url)
+
+        else:
+            messages.error(request, "Minimum salary must be less than maximum salary")
+            return render(request, self.template_name, {"form": form})
 
 
 @login_required

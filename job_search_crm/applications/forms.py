@@ -13,6 +13,13 @@ class NewApplicationForm(forms.Form):
     max_salary = forms.IntegerField()
     tech_stack = forms.CharField(widget=forms.Textarea)
 
+    def is_valid(self):
+        valid = super().is_valid()
+        if valid:
+            return self.cleaned_data["min_salary"] <= self.cleaned_data["max_salary"]
+
+        return valid
+
 
 class NewEventForm(forms.Form):
     description = forms.CharField(widget=forms.Textarea)

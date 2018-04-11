@@ -26,11 +26,6 @@ urlpatterns = [
         name="new_application",
     ),
     path(
-        "applications/create",
-        views.create_new_application,
-        name="create_new_application",
-    ),
-    path(
         "applications/<int:application_id>", views.application_by_id, name="application"
     ),
     path(

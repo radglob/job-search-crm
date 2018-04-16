@@ -195,7 +195,7 @@ class RestrictedViewsTests(TestCase):
         self.assertIsNotNone(event)
 
     def test_user_can_delete_own_events(self):
-        resp = self.client.get("/applications/1/events/1/delete")
+        resp = self.client.delete("/applications/1/events/1")
         with self.assertRaises(Event.DoesNotExist):
             Event.objects.get(pk=1)
 

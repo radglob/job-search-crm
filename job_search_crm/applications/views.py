@@ -201,50 +201,70 @@ class ApplicationDetailView(DetailView):
         context["application"] = application
         return context
 
-    def get(self, request, pk=None):
-        application = get_object_or_404(Application, pk=self.kwargs.get("pk"))
+    def get(self, request, *args, **kwargs):
+        application = get_object_or_404(
+            Application, pk=self.kwargs.get("application_id")
+        )
         if application.applicant.user.id != request.user.id:
             return HttpResponseRedirect(reverse("applications:applications"))
 
         return render(request, self.template_name, {"application": application})
 
 
-class NewEventView(FormView):
+class EventsView(FormView):
     template_name = "applications/new_event.html"
     form_class = NewEventForm
-    success_url = "/applications"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["application_id"] = self.kwargs["application_id"]
         return context
 
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {"form": form})
 
-@login_required
-def create_new_event(request, pk):
-    application = get_object_or_404(Application, pk=pk)
-    if application.applicant.user.id == request.user.id:
-        event = Event.objects.create(
-            application=application,
-            description=request.POST["description"],
-            date=request.POST["date"],
-        )
-        event.save()
-        messages.success(request, "New event added.")
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            application_id = self.kwargs.get("application_id")
+            application = get_object_or_404(Application, application_id)
+            if application.applicant.user.id == request.user.id:
+                event = Event.objects.create(
+                    application=application,
+                    description=form.cleaned_data["description"],
+                    date=form.cleaned_data["date"],
+                )
+                event.save()
+                messages.success(request, "New event added.")
+                return HttpResponseRedirect(
+                    reverse(
+                        "applications:application",
+                        kwargs={"application_id": application_id},
+                    )
+                )
+
+        else:
+            messages.error(request, "Invalid data entered.")
+            return render(request, self.template_name, {"form": form})
+
+
+class EventByIdView(TemplateView):
+
+    def delete(self, request, *args, **kwargs):
+        event_id = self.kwargs.get("event_id")
+        event = get_object_or_404(Event, pk=event_id)
+        if event.application.applicant.user.id == request.user.id:
+            event.delete()
+            messages.success(request, "Event deleted.")
+        else:
+            messages.error(request, "Cannot delete this event.")
         return HttpResponseRedirect(
-            reverse("applications:application", kwargs={"pk": pk})
+            reverse(
+                "applications:application",
+                kwargs={"application_id": self.kwargs.get("application_id")},
+            )
         )
-
-    else:
-        return HttpResponseRedirect(reverse("applications:applications"))
-
-
-@login_required
-def delete_event(request, pk, event_id):
-    event = Event.objects.get(pk=event_id)
-    if event.application.applicant.user.id == request.user.id:
-        event.delete()
-    return HttpResponseRedirect(reverse("applications:application", kwargs={"pk": pk}))
 
 
 class ProfileView(FormView):

@@ -26,23 +26,18 @@ urlpatterns = [
         name="new_application",
     ),
     path(
-        "applications/<int:pk>",
+        "applications/<int:application_id>",
         login_required(views.ApplicationDetailView.as_view()),
         name="application",
     ),
     path(
-        "applications/<int:pk>/events/new",
-        login_required(views.NewEventView.as_view()),
+        "applications/<int:application_id>/events",
+        login_required(views.EventsView.as_view()),
         name="new_event",
     ),
     path(
-        "applications/<int:pk>/events/create",
-        views.create_new_event,
-        name="create_event",
-    ),
-    path(
-        "applications/<int:pk>/events/<int:event_id>/delete",
-        views.delete_event,
+        "applications/<int:application_id>/events/<int:event_id>",
+        login_required(views.EventByIdView.as_view()),
         name="delete_event",
     ),
 ]

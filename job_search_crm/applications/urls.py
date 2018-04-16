@@ -5,23 +5,20 @@ from . import views
 
 app_name = "applications"
 urlpatterns = [
-    path("", views.index, name="home"),
-    path("signup", views.SignupView.as_view(), name="signup"),
-    path("accounts/register", views.create_account, name="create_account"),
+    path("", views.IndexView.as_view(), name="home"),
+    path("accounts/register", views.CreateAccountView.as_view(), name="create_account"),
     path(
         "accounts/register/profile",
-        views.get_profile_information,
-        name="get_profile_information",
+        login_required(views.CreateProfileView.as_view()),
+        name="create_profile",
     ),
-    path("accounts/profile/create", views.create_profile, name="create_profile"),
     path(
-        "accounts/<int:user_id>/profile",
-        views.ProfileView.as_view(),
+        "accounts/profile",
+        login_required(views.ProfileView.as_view()),
         name="view_profile",
     ),
     path("accounts/login", views.login, name="login"),
-    path("accounts/<int:user_id>/edit", views.edit_profile, name="edit_profile"),
-    path("logout", views.logout, name="logout"),
+    path("accounts/logout", views.logout, name="logout"),
     path("applications", views.applications, name="applications"),
     path(
         "applications/new",
@@ -29,26 +26,18 @@ urlpatterns = [
         name="new_application",
     ),
     path(
-        "applications/create",
-        views.create_new_application,
-        name="create_new_application",
+        "applications/<int:application_id>",
+        login_required(views.ApplicationDetailView.as_view()),
+        name="application",
     ),
     path(
-        "applications/<int:application_id>", views.application_by_id, name="application"
-    ),
-    path(
-        "applications/<int:application_id>/events/new",
-        login_required(views.NewEventView.as_view()),
+        "applications/<int:application_id>/events",
+        login_required(views.EventsView.as_view()),
         name="new_event",
     ),
     path(
-        "applications/<int:application_id>/events/create",
-        views.create_new_event,
-        name="create_event",
-    ),
-    path(
-        "applications/<int:application_id>/events/<int:event_id>/delete",
-        views.delete_event,
+        "applications/<int:application_id>/events/<int:event_id>",
+        login_required(views.EventByIdView.as_view()),
         name="delete_event",
     ),
 ]

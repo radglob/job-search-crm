@@ -44,6 +44,7 @@ APPLICATION_STATUS_CHOICES = (
     ("1", "Declined by employer"),
     ("2", "Offer extended"),
     ("3", "Position accepted"),
+    ("4", "Declined by applicant"),
 )
 
 

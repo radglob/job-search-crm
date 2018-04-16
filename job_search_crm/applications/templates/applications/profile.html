@@ -1,6 +1,7 @@
 {% extends 'applications/base.html' %}
 
 {% block body %}
+<h1>Profile</h1>
 {% if messages %}
   {% for message in messages %}
     {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
@@ -10,7 +11,7 @@
     {% endif %}
   {% endfor %}
 {% endif %}
-<form action="{% url 'applications:edit_profile' request.user.id %}" method="POST">
+<form action="{% url 'applications:view_profile' %}" method="POST">
   {% csrf_token %}
   {{ form.as_p }}
   <input type="submit" value="Update profile" />

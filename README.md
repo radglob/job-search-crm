@@ -1,5 +1,6 @@
 # Job Search CRM
 [![Build Status](https://travis-ci.org/sdroadie/job-search-crm.svg?branch=master)](https://travis-ci.org/sdroadie/job-search-crm)
+[![Maintainability](https://api.codeclimate.com/v1/badges/86ecb66d95424728138b/maintainability)](https://codeclimate.com/github/sdroadie/job-search-crm/maintainability)
 
 A CRM designed for tech workers of all stripes to streamline their job
 search process.

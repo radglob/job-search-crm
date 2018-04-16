@@ -10,7 +10,7 @@ from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.generic import ListView, TemplateView
+from django.views.generic import DetailView, ListView, TemplateView
 from django.views.generic.edit import FormView
 
 from .models import (Application, Company, CustomerProfile, Event, Position)
@@ -192,21 +192,21 @@ class NewApplicationView(FormView):
             return render(request, self.template_name, {"form": form})
 
 
-@login_required
-def application_by_id(request, application_id):
-    try:
-        application = Application.objects.get(pk=application_id)
+class ApplicationDetailView(DetailView):
+    template_name = "applications/application_details.html"
+    model = Application
+
+    def get_context_data(self, **kwargs):
+        context = super(ApplicationDetailView, self).get_context_data(**kwargs)
+        context["application"] = application
+        return context
+
+    def get(self, request, pk=None):
+        application = get_object_or_404(Application, pk=self.kwargs.get("pk"))
         if application.applicant.user.id != request.user.id:
             return HttpResponseRedirect(reverse("applications:applications"))
 
-        return render(
-            request,
-            "applications/application_details.html",
-            {"application": application},
-        )
-
-    except Application.DoesNotExist:
-        return HttpResponseRedirect(reverse("applications:applications"))
+        return render(request, self.template_name, {"application": application})
 
 
 class NewEventView(FormView):
@@ -221,8 +221,8 @@ class NewEventView(FormView):
 
 
 @login_required
-def create_new_event(request, application_id):
-    application = get_object_or_404(Application, pk=application_id)
+def create_new_event(request, pk):
+    application = get_object_or_404(Application, pk=pk)
     if application.applicant.user.id == request.user.id:
         event = Event.objects.create(
             application=application,
@@ -232,9 +232,7 @@ def create_new_event(request, application_id):
         event.save()
         messages.success(request, "New event added.")
         return HttpResponseRedirect(
-            reverse(
-                "applications:application", kwargs={"application_id": application_id}
-            )
+            reverse("applications:application", kwargs={"pk": pk})
         )
 
     else:
@@ -242,13 +240,11 @@ def create_new_event(request, application_id):
 
 
 @login_required
-def delete_event(request, application_id, event_id):
+def delete_event(request, pk, event_id):
     event = Event.objects.get(pk=event_id)
     if event.application.applicant.user.id == request.user.id:
         event.delete()
-    return HttpResponseRedirect(
-        reverse("applications:application", kwargs={"application_id": application_id})
-    )
+    return HttpResponseRedirect(reverse("applications:application", kwargs={"pk": pk}))
 
 
 class ProfileView(FormView):

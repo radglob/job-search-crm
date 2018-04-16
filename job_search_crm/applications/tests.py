@@ -421,3 +421,42 @@ class NewApplicationViewTests(TestCase):
         )
         applications = Application.objects.all()
         self.assertEquals(len(applications), 0)
+
+
+class ApplicationByIdViewTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        user = User.objects.create_user("joe", "joe@email.com", "password")
+        profile = CustomerProfile.objects.create(
+            user=user, bio="Something else", location="Baltimore, MD"
+        )
+        company = Company.objects.create(
+            company_name="Company, Inc.",
+            location="Baltimore, MD",
+            sub_industry="Widgets",
+        )
+        position = Position.objects.create(
+            company=company,
+            position_name="Software Engineer",
+            is_remote=False,
+            min_salary=50000,
+            max_salary=60000,
+            tech_stack="Python",
+        )
+        application = Application.objects.create(applicant=profile, position=position)
+
+    def test_get_application_by_id_view_requires_login(self):
+        resp = self.client.get("/applications/1")
+        self.assertRedirects(resp, "/?next=/applications/1")
+
+    def test_get_application_by_id_shows_application_details(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.get("/applications/1")
+        self.assertIn("Application to Company, Inc.", resp.content.decode())
+
+    def test_post_application_by_id_not_allowed(self):
+        self.client.login(username="joe", password="password")
+        resp = self.client.post("/applications/1")
+        self.assertEquals(resp.status_code, 405)
